@@ -1,0 +1,28 @@
+# Environment
+.env
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Database
+db.sqlite3
+
+# Media uploads
+media/
+
+# Static collected
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Testing guides / local notes
+POSTMAN_TESTING_GUIDE.md
