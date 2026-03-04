@@ -25,3 +25,22 @@ class JobCreateSerializer(serializers.ModelSerializer):
             'nice_to_have_skills': {'required': False},
             'min_experience_years': {'required': False},
         }
+
+    def _validate_skill_list(self, value, field_name):
+        if not isinstance(value, list):
+            raise serializers.ValidationError(f'{field_name} must be a list.')
+        for item in value:
+            if not isinstance(item, str) or not item.strip():
+                raise serializers.ValidationError(f'Each item in {field_name} must be a non-empty string.')
+        return [item.strip() for item in value]
+
+    def validate_required_skills(self, value):
+        return self._validate_skill_list(value, 'required_skills')
+
+    def validate_nice_to_have_skills(self, value):
+        return self._validate_skill_list(value, 'nice_to_have_skills')
+
+    def validate_min_experience_years(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Minimum experience years cannot be negative.')
+        return value

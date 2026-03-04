@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Avg
 from django.conf import settings
 
 
@@ -25,6 +26,10 @@ class Job(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return self.title
@@ -35,7 +40,8 @@ class Job(models.Model):
 
     @property
     def average_score(self):
-        scores = self.candidates.filter(overall_score__isnull=False).values_list('overall_score', flat=True)
-        if scores:
-            return round(sum(scores) / len(scores), 1)
-        return None
+        result = self.candidates.filter(
+            overall_score__isnull=False
+        ).aggregate(avg=Avg('overall_score'))
+        avg = result['avg']
+        return round(avg, 1) if avg is not None else None
