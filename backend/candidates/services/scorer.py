@@ -1,7 +1,8 @@
 import json
-import re
 import logging
+import anthropic
 from django.conf import settings
+from .utils import parse_json_response
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,10 @@ def score_candidate(parsed_data: dict, job) -> dict:
         return _default_scores(job)
 
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
+        client = anthropic.Anthropic(api_key=api_key, timeout=60.0)
 
         message = client.messages.create(
-            model="claude-sonnet-4-5-20250514",
+            model=settings.ANTHROPIC_MODEL,
             max_tokens=2048,
             messages=[
                 {
@@ -55,17 +55,7 @@ Candidate Data:
         )
 
         response_text = message.content[0].text
-
-        try:
-            result = json.loads(response_text)
-        except json.JSONDecodeError:
-            json_match = re.search(r'\{[\s\S]*\}', response_text)
-            if json_match:
-                result = json.loads(json_match.group())
-            else:
-                raise ValueError("No JSON found in response")
-
-        return result
+        return parse_json_response(response_text)
 
     except Exception as e:
         logger.error(f"Failed to score candidate: {e}")

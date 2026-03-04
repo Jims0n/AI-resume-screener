@@ -1,4 +1,8 @@
 import csv
+import re
+import logging
+
+from django.conf import settings
 from django.http import HttpResponse
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -11,6 +15,11 @@ from .serializers import (
 )
 from .tasks import process_resume
 from jobs.models import Job
+
+logger = logging.getLogger(__name__)
+
+ALLOWED_EXTENSIONS = ('.pdf', '.docx')
+MAX_RESUME_SIZE = getattr(settings, 'MAX_RESUME_SIZE_MB', 10) * 1024 * 1024
 
 
 class ResumeUploadView(APIView):
@@ -28,9 +37,16 @@ class ResumeUploadView(APIView):
             return Response({'detail': 'No files provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
         candidates = []
+        skipped = []
+
         for f in files:
-            # Validate file type
-            if not (f.name.lower().endswith('.pdf') or f.name.lower().endswith('.docx')):
+            ext = f.name.lower().rsplit('.', 1)[-1] if '.' in f.name else ''
+            if f'.{ext}' not in ALLOWED_EXTENSIONS:
+                skipped.append({'file': f.name, 'reason': 'Unsupported file type. Only PDF and DOCX are allowed.'})
+                continue
+
+            if f.size > MAX_RESUME_SIZE:
+                skipped.append({'file': f.name, 'reason': f'File exceeds {settings.MAX_RESUME_SIZE_MB}MB limit.'})
                 continue
 
             candidate = Candidate.objects.create(
@@ -38,7 +54,6 @@ class ResumeUploadView(APIView):
                 resume_file=f,
                 name=f.name.rsplit('.', 1)[0],
             )
-            # Dispatch Celery task
             process_resume.delay(candidate.id)
             candidates.append({
                 'id': candidate.id,
@@ -46,7 +61,17 @@ class ResumeUploadView(APIView):
                 'status': candidate.status,
             })
 
-        return Response({'candidates': candidates}, status=status.HTTP_201_CREATED)
+        response_data = {'candidates': candidates}
+        if skipped:
+            response_data['skipped'] = skipped
+
+        if not candidates:
+            return Response(
+                {'detail': 'No valid files were uploaded.', 'skipped': skipped},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class CandidateListView(generics.ListAPIView):
@@ -93,6 +118,7 @@ class CandidateDetailView(generics.RetrieveAPIView):
 class CandidateStatusUpdateView(generics.UpdateAPIView):
     serializer_class = CandidateStatusSerializer
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['patch']
 
     def get_queryset(self):
         return Candidate.objects.filter(job__user=self.request.user)
@@ -106,6 +132,12 @@ class CandidateReprocessView(APIView):
             candidate = Candidate.objects.get(id=pk, job__user=request.user)
         except Candidate.DoesNotExist:
             return Response({'detail': 'Candidate not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if candidate.status == 'processing':
+            return Response(
+                {'detail': 'Candidate is already being processed.'},
+                status=status.HTTP_409_CONFLICT,
+            )
 
         candidate.status = 'pending'
         candidate.save(update_fields=['status'])
@@ -125,8 +157,11 @@ class CandidateExportView(APIView):
 
         candidates = Candidate.objects.filter(job=job).order_by('-overall_score')
 
+        safe_title = re.sub(r'[^\w\s-]', '', job.title).strip().replace(' ', '_')[:50]
+        filename = f'candidates_{safe_title}.csv'
+
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="candidates_{job.title}.csv"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
         writer = csv.writer(response)
         writer.writerow([

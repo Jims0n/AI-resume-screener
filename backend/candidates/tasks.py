@@ -1,5 +1,6 @@
 import logging
 from celery import shared_task
+from django.db import transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -8,9 +9,9 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True, max_retries=2, default_retry_delay=30)
 def process_resume(self, candidate_id: int):
     """
-    Full pipeline: extract text → parse structured data → score against job.
-    Updates candidate status throughout: pending → processing → scored.
-    On failure, resets to pending with error message in scoring_reasoning.
+    Full pipeline: extract text -> parse structured data -> score against job.
+    Updates candidate status: pending -> processing -> scored.
+    On permanent failure, sets status to 'pending' with error in scoring_reasoning.
     """
     from .models import Candidate, SkillMatch
     from .services.parser import extract_text
@@ -59,17 +60,20 @@ def process_resume(self, candidate_id: int):
         ])
 
         # Step 5: Create SkillMatch records
-        SkillMatch.objects.filter(candidate=candidate).delete()
-        skill_matches = scores.get('skill_matches', [])
-        for sm in skill_matches:
-            SkillMatch.objects.create(
-                candidate=candidate,
-                skill_name=sm.get('skill_name', ''),
-                found=sm.get('found', False),
-                proficiency=sm.get('proficiency', 'none'),
-                evidence=sm.get('evidence', ''),
-                is_required=sm.get('is_required', True),
-            )
+        with transaction.atomic():
+            SkillMatch.objects.filter(candidate=candidate).delete()
+            skill_matches = scores.get('skill_matches', [])
+            SkillMatch.objects.bulk_create([
+                SkillMatch(
+                    candidate=candidate,
+                    skill_name=sm.get('skill_name', ''),
+                    found=sm.get('found', False),
+                    proficiency=sm.get('proficiency', 'none'),
+                    evidence=sm.get('evidence', ''),
+                    is_required=sm.get('is_required', True),
+                )
+                for sm in skill_matches
+            ])
 
         # Step 6: Set status to scored
         candidate.status = 'scored'
@@ -80,13 +84,14 @@ def process_resume(self, candidate_id: int):
 
     except Exception as exc:
         logger.error(f"Failed to process candidate {candidate_id}: {exc}")
-        candidate.status = 'pending'
-        candidate.scoring_reasoning = f"Processing failed: {str(exc)}"
-        candidate.save(update_fields=['status', 'scoring_reasoning'])
 
-        # Retry
-        try:
-            self.retry(exc=exc)
-        except self.MaxRetriesExceededError:
-            candidate.scoring_reasoning = f"Processing failed after max retries: {str(exc)}"
+        # Retry if retries remain — keep status as 'processing' during retry
+        if self.request.retries < self.max_retries:
+            candidate.scoring_reasoning = f"Processing attempt {self.request.retries + 1} failed, retrying..."
             candidate.save(update_fields=['scoring_reasoning'])
+            raise self.retry(exc=exc)
+
+        # Max retries exceeded — mark as failed
+        candidate.status = 'pending'
+        candidate.scoring_reasoning = f"Processing failed after {self.max_retries + 1} attempts: {str(exc)}"
+        candidate.save(update_fields=['status', 'scoring_reasoning'])

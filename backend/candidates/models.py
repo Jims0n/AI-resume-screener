@@ -27,9 +27,15 @@ class Candidate(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     processed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-overall_score', '-created_at']
+        indexes = [
+            models.Index(fields=['job', 'status']),
+            models.Index(fields=['-overall_score']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
         return f"{self.name} — {self.job.title}"
@@ -53,6 +59,7 @@ class SkillMatch(models.Model):
 
     class Meta:
         ordering = ['-is_required', '-found', 'skill_name']
+        unique_together = ['candidate', 'skill_name']
 
     def __str__(self):
         status = "✓" if self.found else "✗"
