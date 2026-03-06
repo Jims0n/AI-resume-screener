@@ -50,17 +50,28 @@ export default function JobDetailPage() {
 
     const bulkAction = async (status: string) => {
         const ids = Array.from(selected);
-        for (let i = 0; i < ids.length; i++) {
-            await updateStatus(ids[i], status);
-        }
+        const results = await Promise.allSettled(
+            ids.map((id) => updateStatus(id, status))
+        );
+        const failed = results.filter((r) => r.status === 'rejected').length;
         setSelected(new Set());
-        addToast(`${selected.size} candidates ${status}`, 'success');
+        if (failed === 0) {
+            addToast(`${ids.length} candidate(s) ${status}`, 'success');
+        } else if (failed === ids.length) {
+            addToast(`Failed to update all ${ids.length} candidates`, 'error');
+        } else {
+            addToast(`${ids.length - failed} updated, ${failed} failed`, 'error');
+        }
         fetchCandidates(jobId, { ordering: sortKey });
     };
 
     const handleExport = async () => {
-        await exportCSV(jobId);
-        addToast('CSV exported!', 'success');
+        try {
+            await exportCSV(jobId);
+            addToast('CSV exported!', 'success');
+        } catch {
+            addToast('Failed to export CSV', 'error');
+        }
     };
 
     const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (

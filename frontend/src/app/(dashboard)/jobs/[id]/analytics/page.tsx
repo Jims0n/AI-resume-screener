@@ -22,16 +22,31 @@ export default function AnalyticsPage() {
     const jobId = Number(params.id);
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         candidateService.getAnalytics(jobId).then((d) => {
             setData(d);
             setLoading(false);
-        }).catch(() => setLoading(false));
+        }).catch((err) => {
+            setError(err.response?.data?.detail || 'Failed to load analytics');
+            setLoading(false);
+        });
     }, [jobId]);
 
     if (loading) {
         return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-20">
+                <p className="text-red-500 mb-4">{error}</p>
+                <Button variant="secondary" onClick={() => router.push(`/jobs/${jobId}`)}>
+                    ← Back to job
+                </Button>
+            </div>
+        );
     }
 
     if (!data) {
@@ -118,7 +133,7 @@ export default function AnalyticsPage() {
                 {/* Top Candidates */}
                 <Card header={<h3 className="font-semibold text-slate-700">Top 5 Candidates</h3>} noPadding>
                     <div className="divide-y divide-slate-100">
-                        {data.top_candidates.map((c: any, i: number) => (
+                        {data.top_candidates.map((c, i) => (
                             <div
                                 key={c.id}
                                 className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 cursor-pointer transition-colors"

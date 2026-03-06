@@ -161,7 +161,7 @@ export default function CreateJobPage() {
                         <div className="flex gap-2">
                             <select
                                 value={skillType}
-                                onChange={(e) => setSkillType(e.target.value as any)}
+                                onChange={(e) => setSkillType(e.target.value as 'required' | 'nice')}
                                 className="px-3 py-2 rounded-lg border border-slate-300 text-sm"
                             >
                                 <option value="required">Required</option>

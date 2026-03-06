@@ -55,7 +55,7 @@ export function useCandidates() {
     const updateStatus = useCallback(async (id: number, status: string) => {
         try {
             await candidateService.updateCandidateStatus(id, status);
-            setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: status as any } : c)));
+            setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: status as CandidateListItem['status'] } : c)));
         } catch (err: any) {
             setError(err.response?.data?.detail || 'Failed to update status');
         }
@@ -72,15 +72,19 @@ export function useCandidates() {
 
     const exportCSV = useCallback(async (jobId: number) => {
         try {
-            const blob = await candidateService.exportCandidates(jobId);
+            const { blob, filename } = await candidateService.exportCandidates(jobId);
+            if (!(blob instanceof Blob) || blob.size === 0) {
+                throw new Error('Empty or invalid export response');
+            }
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `candidates_export.csv`;
+            a.download = filename;
             a.click();
             window.URL.revokeObjectURL(url);
         } catch (err: any) {
-            setError('Failed to export');
+            setError(err.message || 'Failed to export');
+            throw err;
         }
     }, []);
 

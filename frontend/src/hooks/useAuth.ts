@@ -36,9 +36,13 @@ export function useAuth() {
             setAuth(data.user, data.access, data.refresh);
             router.push('/dashboard');
         } catch (err: any) {
-            const msg = err.response?.data?.detail
-                || err.response?.data?.username?.[0]
-                || err.response?.data?.password?.[0]
+            const d = err.response?.data;
+            const msg = d?.detail
+                || d?.email?.[0]
+                || d?.username?.[0]
+                || d?.password?.[0]
+                || d?.password_confirm?.[0]
+                || d?.non_field_errors?.[0]
                 || 'Registration failed';
             setError(msg);
             throw err;
