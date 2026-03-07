@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     'jobs',
     'candidates',
     'analytics',
+    'notifications',
+    'emails',
 ]
 
 MIDDLEWARE = [
@@ -134,10 +136,13 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ),
     'DEFAULT_THROTTLE_RATES': {
         'anon': '100/minute',
         'user': '500/minute',
+        'upload': '20/hour',
+        'ai_reprocess': '10/hour',
     },
 }
 
@@ -166,6 +171,15 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=False, cast=bool)
+
+# Email
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@resumescreener.com')
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 
 # Anthropic
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
@@ -213,6 +227,16 @@ LOGGING = {
             'propagate': False,
         },
         'analytics': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'emails': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,

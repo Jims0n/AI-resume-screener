@@ -5,14 +5,15 @@ from rest_framework.views import APIView
 
 from candidates.models import Candidate
 from jobs.models import Job
+from accounts.permissions import IsOrganizationMember
 
 
 class JobAnalyticsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
 
     def get(self, request, job_id):
         try:
-            job = Job.objects.get(id=job_id, user=request.user)
+            job = Job.objects.get(id=job_id, organization=request.user.organization)
         except Job.DoesNotExist:
             return Response({'detail': 'Job not found.'}, status=404)
 

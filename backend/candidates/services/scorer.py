@@ -14,6 +14,23 @@ def score_candidate(parsed_data: dict, job) -> dict:
         logger.warning("Anthropic API key not configured. Returning default scores.")
         return _default_scores(job)
 
+    # Use custom weights from the job, falling back to defaults
+    skill_w = getattr(job, 'skill_weight', 0.5) or 0.5
+    exp_w = getattr(job, 'experience_weight', 0.3) or 0.3
+    edu_w = getattr(job, 'education_weight', 0.2) or 0.2
+
+    # Build custom criteria section
+    custom_criteria_text = ''
+    custom_criteria = getattr(job, 'custom_criteria', []) or []
+    if custom_criteria:
+        criteria_lines = []
+        for c in custom_criteria:
+            name = c.get('name', '')
+            weight = c.get('weight', 0)
+            desc = c.get('description', '')
+            criteria_lines.append(f"  - {name} (weight: {weight}): {desc}")
+        custom_criteria_text = '\nAdditional Custom Criteria:\n' + '\n'.join(criteria_lines)
+
     try:
         client = anthropic.Anthropic(api_key=api_key, timeout=60.0)
 
@@ -25,8 +42,9 @@ def score_candidate(parsed_data: dict, job) -> dict:
                     "role": "user",
                     "content": f"""You are an expert recruiter scoring a candidate against a job.
 
-Scoring weights: 50% skills, 30% experience, 20% education.
+Scoring weights: {int(skill_w*100)}% skills, {int(exp_w*100)}% experience, {int(edu_w*100)}% education.
 Required skills are weighted 2x vs nice-to-have skills.
+{custom_criteria_text}
 
 Return ONLY valid JSON:
 {{

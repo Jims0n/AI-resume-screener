@@ -1,4 +1,39 @@
+from django.conf import settings
 from django.db import models
+
+
+class ProcessingBatch(models.Model):
+    STATUS_CHOICES = [
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('partial', 'Partially Completed'),
+    ]
+
+    job = models.ForeignKey('jobs.Job', on_delete=models.CASCADE, related_name='batches')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='upload_batches',
+    )
+    total_count = models.IntegerField(default=0)
+    processed_count = models.IntegerField(default=0)
+    failed_count = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
+    started_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return f"Batch for {self.job.title} ({self.processed_count}/{self.total_count})"
+
+    @property
+    def progress_percentage(self):
+        if self.total_count == 0:
+            return 0
+        return round((self.processed_count + self.failed_count) / self.total_count * 100, 1)
 
 
 class Candidate(models.Model):
@@ -11,6 +46,13 @@ class Candidate(models.Model):
     ]
 
     job = models.ForeignKey('jobs.Job', on_delete=models.CASCADE, related_name='candidates')
+    batch = models.ForeignKey(
+        ProcessingBatch,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='candidates',
+    )
     name = models.CharField(max_length=255, default='Unknown')
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=50, blank=True)
@@ -62,5 +104,23 @@ class SkillMatch(models.Model):
         unique_together = ['candidate', 'skill_name']
 
     def __str__(self):
-        status = "✓" if self.found else "✗"
-        return f"{status} {self.skill_name} ({self.proficiency})"
+        icon = "✓" if self.found else "✗"
+        return f"{icon} {self.skill_name} ({self.proficiency})"
+
+
+class CandidateNote(models.Model):
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='notes')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='candidate_notes',
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Note by {self.user.email} on {self.candidate.name}"

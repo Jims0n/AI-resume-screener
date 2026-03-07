@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/', include('jobs.urls')),
     path('api/', include('candidates.urls')),
     path('api/', include('analytics.urls')),
+    path('api/', include('notifications.urls')),
+    path('api/', include('emails.urls')),
 ]
 
 if settings.DEBUG:

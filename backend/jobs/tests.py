@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from accounts.models import Organization
 from .models import Job
 
 User = get_user_model()
@@ -10,11 +11,17 @@ User = get_user_model()
 
 class JobModelTests(TestCase):
     def setUp(self):
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user,
+            organization=self.org,
+            created_by=self.user,
             title='Senior Python Developer',
             description='Looking for a senior Python developer.',
             required_skills=['Python', 'Django'],
@@ -36,7 +43,8 @@ class JobModelTests(TestCase):
 
     def test_job_ordering(self):
         job2 = Job.objects.create(
-            user=self.user, title='Job 2', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Job 2', description='desc',
         )
         jobs = list(Job.objects.all())
         self.assertEqual(jobs[0], job2)  # newer first
@@ -45,14 +53,24 @@ class JobModelTests(TestCase):
 class JobViewSetTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
+        self.other_org = Organization.objects.create(
+            name='Other Org', slug='other-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.other_user = User.objects.create_user(
-            username='other', email='other@example.com', password='TestPass123!'
+            username='other', email='other@example.com', password='TestPass123!',
+            organization=self.other_org, role='owner',
         )
         self.client.force_authenticate(user=self.user)
-        self.url = '/api/jobs/'
+        self.url = '/api/jobs'
 
     def test_create_job(self):
         data = {
@@ -92,35 +110,56 @@ class JobViewSetTests(TestCase):
         self.assertEqual(response.data['required_skills'], ['Python', 'SQL'])
 
     def test_list_jobs(self):
-        Job.objects.create(user=self.user, title='Job 1', description='desc 1')
-        Job.objects.create(user=self.user, title='Job 2', description='desc 2')
-        Job.objects.create(user=self.other_user, title='Other Job', description='desc')
+        Job.objects.create(
+            organization=self.org, created_by=self.user,
+            title='Job 1', description='desc 1',
+        )
+        Job.objects.create(
+            organization=self.org, created_by=self.user,
+            title='Job 2', description='desc 2',
+        )
+        Job.objects.create(
+            organization=self.other_org, created_by=self.other_user,
+            title='Other Job', description='desc',
+        )
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
 
     def test_retrieve_job(self):
-        job = Job.objects.create(user=self.user, title='My Job', description='desc')
-        response = self.client.get(f'{self.url}{job.id}/')
+        job = Job.objects.create(
+            organization=self.org, created_by=self.user,
+            title='My Job', description='desc',
+        )
+        response = self.client.get(f'{self.url}/{job.id}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], 'My Job')
 
     def test_retrieve_other_user_job_404(self):
-        job = Job.objects.create(user=self.other_user, title='Not Mine', description='desc')
-        response = self.client.get(f'{self.url}{job.id}/')
+        job = Job.objects.create(
+            organization=self.other_org, created_by=self.other_user,
+            title='Not Mine', description='desc',
+        )
+        response = self.client.get(f'{self.url}/{job.id}')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_job(self):
-        job = Job.objects.create(user=self.user, title='Old Title', description='desc')
+        job = Job.objects.create(
+            organization=self.org, created_by=self.user,
+            title='Old Title', description='desc',
+        )
         response = self.client.patch(
-            f'{self.url}{job.id}/', {'title': 'New Title'}, format='json'
+            f'{self.url}/{job.id}', {'title': 'New Title'}, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['title'], 'New Title')
 
     def test_delete_job(self):
-        job = Job.objects.create(user=self.user, title='Delete Me', description='desc')
-        response = self.client.delete(f'{self.url}{job.id}/')
+        job = Job.objects.create(
+            organization=self.org, created_by=self.user,
+            title='Delete Me', description='desc',
+        )
+        response = self.client.delete(f'{self.url}/{job.id}')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Job.objects.filter(id=job.id).exists())
 
@@ -151,8 +190,13 @@ class JobViewSetTests(TestCase):
 class JobSerializerValidationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.client.force_authenticate(user=self.user)
 
@@ -162,7 +206,7 @@ class JobSerializerValidationTests(TestCase):
             'description': 'desc',
             'required_skills': [123, None],
         }
-        response = self.client.post('/api/jobs/', data, format='json')
+        response = self.client.post('/api/jobs', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_empty_string_in_skills(self):
@@ -171,5 +215,5 @@ class JobSerializerValidationTests(TestCase):
             'description': 'desc',
             'required_skills': ['Python', ''],
         }
-        response = self.client.post('/api/jobs/', data, format='json')
+        response = self.client.post('/api/jobs', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

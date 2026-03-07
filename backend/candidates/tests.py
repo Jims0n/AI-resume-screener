@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from rest_framework import status
+from accounts.models import Organization
 from .models import Candidate, SkillMatch
 from jobs.models import Job
 
@@ -16,11 +17,17 @@ TEMP_MEDIA = tempfile.mkdtemp()
 
 class CandidateModelTests(TestCase):
     def setUp(self):
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user,
+            organization=self.org,
+            created_by=self.user,
             title='Python Dev',
             description='desc',
             required_skills=['Python'],
@@ -61,11 +68,17 @@ class CandidateModelTests(TestCase):
 
 class SkillMatchModelTests(TestCase):
     def setUp(self):
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
 
     @override_settings(MEDIA_ROOT=TEMP_MEDIA)
@@ -99,14 +112,20 @@ class SkillMatchModelTests(TestCase):
 class ResumeUploadViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
         self.client.force_authenticate(user=self.user)
-        self.url = f'/api/jobs/{self.job.id}/upload/'
+        self.url = f'/api/jobs/{self.job.id}/upload'
 
     @patch('candidates.views.process_resume.delay')
     def test_upload_pdf(self, mock_task):
@@ -145,17 +164,25 @@ class ResumeUploadViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_upload_to_nonexistent_job(self):
-        url = '/api/jobs/9999/upload/'
+        url = '/api/jobs/9999/upload'
         pdf_file = SimpleUploadedFile('resume.pdf', b'%PDF', content_type='application/pdf')
         response = self.client.post(url, {'files': pdf_file}, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_upload_to_other_users_job(self):
-        other = User.objects.create_user(
-            username='other', email='other@example.com', password='TestPass123!'
+        other_org = Organization.objects.create(
+            name='Other Org', slug='other-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
         )
-        other_job = Job.objects.create(user=other, title='Other', description='desc')
-        url = f'/api/jobs/{other_job.id}/upload/'
+        other = User.objects.create_user(
+            username='other', email='other@example.com', password='TestPass123!',
+            organization=other_org, role='owner',
+        )
+        other_job = Job.objects.create(
+            organization=other_org, created_by=other,
+            title='Other', description='desc',
+        )
+        url = f'/api/jobs/{other_job.id}/upload'
         pdf_file = SimpleUploadedFile('resume.pdf', b'%PDF', content_type='application/pdf')
         response = self.client.post(url, {'files': pdf_file}, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -165,14 +192,20 @@ class ResumeUploadViewTests(TestCase):
 class CandidateListViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
         self.client.force_authenticate(user=self.user)
-        self.url = f'/api/jobs/{self.job.id}/candidates/'
+        self.url = f'/api/jobs/{self.job.id}/candidates'
 
         self.c1 = Candidate.objects.create(
             job=self.job, name='Alice', overall_score=80, status='scored',
@@ -213,11 +246,17 @@ class CandidateListViewTests(TestCase):
 class CandidateDetailViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
         self.candidate = Candidate.objects.create(
             job=self.job, name='Alice', overall_score=80, status='scored',
@@ -227,22 +266,30 @@ class CandidateDetailViewTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_retrieve_candidate(self):
-        url = f'/api/candidates/{self.candidate.id}/'
+        url = f'/api/candidates/{self.candidate.id}'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'Alice')
         self.assertEqual(response.data['job_title'], 'Dev')
 
     def test_retrieve_other_users_candidate(self):
-        other = User.objects.create_user(
-            username='other', email='other@example.com', password='TestPass123!'
+        other_org = Organization.objects.create(
+            name='Other Org', slug='other-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
         )
-        other_job = Job.objects.create(user=other, title='Other', description='desc')
+        other = User.objects.create_user(
+            username='other', email='other@example.com', password='TestPass123!',
+            organization=other_org, role='owner',
+        )
+        other_job = Job.objects.create(
+            organization=other_org, created_by=other,
+            title='Other', description='desc',
+        )
         other_candidate = Candidate.objects.create(
             job=other_job, name='Eve',
             resume_file=SimpleUploadedFile('e.pdf', b'c'),
         )
-        url = f'/api/candidates/{other_candidate.id}/'
+        url = f'/api/candidates/{other_candidate.id}'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -251,11 +298,17 @@ class CandidateDetailViewTests(TestCase):
 class CandidateStatusUpdateViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
         self.candidate = Candidate.objects.create(
             job=self.job, name='Alice', status='scored',
@@ -264,14 +317,14 @@ class CandidateStatusUpdateViewTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_update_status(self):
-        url = f'/api/candidates/{self.candidate.id}/status/'
+        url = f'/api/candidates/{self.candidate.id}/status'
         response = self.client.patch(url, {'status': 'shortlisted'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.candidate.refresh_from_db()
         self.assertEqual(self.candidate.status, 'shortlisted')
 
     def test_reject_candidate(self):
-        url = f'/api/candidates/{self.candidate.id}/status/'
+        url = f'/api/candidates/{self.candidate.id}/status'
         response = self.client.patch(url, {'status': 'rejected'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.candidate.refresh_from_db()
@@ -282,11 +335,17 @@ class CandidateStatusUpdateViewTests(TestCase):
 class CandidateReprocessViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev', description='desc',
         )
         self.candidate = Candidate.objects.create(
             job=self.job, name='Alice', status='scored',
@@ -296,7 +355,7 @@ class CandidateReprocessViewTests(TestCase):
 
     @patch('candidates.views.process_resume.delay')
     def test_reprocess(self, mock_task):
-        url = f'/api/candidates/{self.candidate.id}/reprocess/'
+        url = f'/api/candidates/{self.candidate.id}/reprocess'
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.candidate.refresh_from_db()
@@ -306,7 +365,7 @@ class CandidateReprocessViewTests(TestCase):
     def test_reprocess_already_processing(self):
         self.candidate.status = 'processing'
         self.candidate.save()
-        url = f'/api/candidates/{self.candidate.id}/reprocess/'
+        url = f'/api/candidates/{self.candidate.id}/reprocess'
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
@@ -315,11 +374,17 @@ class CandidateReprocessViewTests(TestCase):
 class CandidateExportViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user, title='Dev Role', description='desc'
+            organization=self.org, created_by=self.user,
+            title='Dev Role', description='desc',
         )
         Candidate.objects.create(
             job=self.job, name='Alice', email='alice@test.com',
@@ -329,7 +394,7 @@ class CandidateExportViewTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_export_csv(self):
-        url = f'/api/jobs/{self.job.id}/export/'
+        url = f'/api/jobs/{self.job.id}/export'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response['Content-Type'], 'text/csv')
@@ -339,7 +404,7 @@ class CandidateExportViewTests(TestCase):
         self.assertIn('alice@test.com', content)
 
     def test_export_nonexistent_job(self):
-        url = '/api/jobs/9999/export/'
+        url = '/api/jobs/9999/export'
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

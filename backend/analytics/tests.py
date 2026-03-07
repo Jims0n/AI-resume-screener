@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from rest_framework import status
+from accounts.models import Organization
 from jobs.models import Job
 from candidates.models import Candidate, SkillMatch
 
@@ -16,17 +17,23 @@ TEMP_MEDIA = tempfile.mkdtemp()
 class JobAnalyticsViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.org = Organization.objects.create(
+            name='Test Org', slug='test-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
+        )
         self.user = User.objects.create_user(
-            username='recruiter', email='rec@example.com', password='TestPass123!'
+            username='recruiter', email='rec@example.com', password='TestPass123!',
+            organization=self.org, role='owner',
         )
         self.job = Job.objects.create(
-            user=self.user,
+            organization=self.org,
+            created_by=self.user,
             title='Python Dev',
             description='desc',
             required_skills=['Python', 'Django'],
         )
         self.client.force_authenticate(user=self.user)
-        self.url = f'/api/jobs/{self.job.id}/analytics/'
+        self.url = f'/api/jobs/{self.job.id}/analytics'
 
     def test_analytics_empty_job(self):
         response = self.client.get(self.url)
@@ -93,15 +100,23 @@ class JobAnalyticsViewTests(TestCase):
         self.assertEqual(skill_gap['Django'], 50.0)
 
     def test_analytics_nonexistent_job(self):
-        response = self.client.get('/api/jobs/9999/analytics/')
+        response = self.client.get('/api/jobs/9999/analytics')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_analytics_other_users_job(self):
-        other = User.objects.create_user(
-            username='other', email='other@example.com', password='TestPass123!'
+        other_org = Organization.objects.create(
+            name='Other Org', slug='other-org',
+            max_jobs=10, max_resumes_per_job=50, max_users=10,
         )
-        other_job = Job.objects.create(user=other, title='Other', description='desc')
-        response = self.client.get(f'/api/jobs/{other_job.id}/analytics/')
+        other = User.objects.create_user(
+            username='other', email='other@example.com', password='TestPass123!',
+            organization=other_org, role='owner',
+        )
+        other_job = Job.objects.create(
+            organization=other_org, created_by=other,
+            title='Other', description='desc',
+        )
+        response = self.client.get(f'/api/jobs/{other_job.id}/analytics')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_analytics_unauthenticated(self):

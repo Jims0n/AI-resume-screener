@@ -1,9 +1,90 @@
 import logging
 from celery import shared_task
 from django.db import transaction
+from django.db.models import F
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+def _update_batch(candidate, success=True):
+    """Update batch counters and status after processing a candidate."""
+    if not candidate.batch_id:
+        return
+
+    from .models import ProcessingBatch
+
+    try:
+        if success:
+            ProcessingBatch.objects.filter(id=candidate.batch_id).update(
+                processed_count=F('processed_count') + 1
+            )
+        else:
+            ProcessingBatch.objects.filter(id=candidate.batch_id).update(
+                failed_count=F('failed_count') + 1
+            )
+
+        # Check if batch is complete
+        batch = ProcessingBatch.objects.get(id=candidate.batch_id)
+        total_done = batch.processed_count + batch.failed_count
+        if total_done >= batch.total_count:
+            if batch.failed_count > 0 and batch.processed_count > 0:
+                batch.status = 'partial'
+            elif batch.failed_count == batch.total_count:
+                batch.status = 'partial'
+            else:
+                batch.status = 'completed'
+            batch.completed_at = timezone.now()
+            batch.save(update_fields=['status', 'completed_at'])
+
+            # Create notification for batch completion
+            _notify_batch_complete(batch)
+
+    except ProcessingBatch.DoesNotExist:
+        logger.warning(f"Batch {candidate.batch_id} not found for candidate {candidate.id}")
+
+
+def _notify_batch_complete(batch):
+    """Send notification when a batch completes processing."""
+    try:
+        from notifications.helpers import create_notification
+
+        if batch.created_by:
+            create_notification(
+                user=batch.created_by,
+                notification_type='batch_complete',
+                title='Resume processing complete',
+                message=f'{batch.processed_count} of {batch.total_count} resumes processed for "{batch.job.title}".',
+                data={
+                    'batch_id': batch.id,
+                    'job_id': batch.job_id,
+                    'processed_count': batch.processed_count,
+                    'failed_count': batch.failed_count,
+                },
+            )
+    except Exception as e:
+        logger.warning(f"Failed to create batch notification: {e}")
+
+
+def _notify_processing_complete(candidate):
+    """Send notification when a single candidate finishes processing."""
+    try:
+        from notifications.helpers import create_notification
+
+        if candidate.job.created_by:
+            create_notification(
+                user=candidate.job.created_by,
+                notification_type='processing_complete',
+                title='Resume scored',
+                message=f'{candidate.name} scored {candidate.overall_score}/100 for "{candidate.job.title}".',
+                data={
+                    'candidate_id': candidate.id,
+                    'job_id': candidate.job_id,
+                    'score': candidate.overall_score,
+                },
+            )
+    except Exception as e:
+        logger.warning(f"Failed to create processing notification: {e}")
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=30)
@@ -19,7 +100,7 @@ def process_resume(self, candidate_id: int):
     from .services.scorer import score_candidate
 
     try:
-        candidate = Candidate.objects.select_related('job').get(id=candidate_id)
+        candidate = Candidate.objects.select_related('job', 'job__created_by').get(id=candidate_id)
     except Candidate.DoesNotExist:
         logger.error(f"Candidate {candidate_id} not found")
         return
@@ -82,16 +163,22 @@ def process_resume(self, candidate_id: int):
 
         logger.info(f"Successfully processed candidate {candidate_id}: score={candidate.overall_score}")
 
+        # Update batch and send notifications
+        _update_batch(candidate, success=True)
+        _notify_processing_complete(candidate)
+
     except Exception as exc:
         logger.error(f"Failed to process candidate {candidate_id}: {exc}")
 
-        # Retry if retries remain — keep status as 'processing' during retry
+        # Retry if retries remain
         if self.request.retries < self.max_retries:
             candidate.scoring_reasoning = f"Processing attempt {self.request.retries + 1} failed, retrying..."
             candidate.save(update_fields=['scoring_reasoning'])
             raise self.retry(exc=exc)
 
-        # Max retries exceeded — mark as failed
+        # Max retries exceeded
         candidate.status = 'pending'
         candidate.scoring_reasoning = f"Processing failed after {self.max_retries + 1} attempts: {str(exc)}"
         candidate.save(update_fields=['status', 'scoring_reasoning'])
+
+        _update_batch(candidate, success=False)
