@@ -35,7 +35,43 @@ class IsOrganizationOwner(permissions.BasePermission):
 
 
 class CanManageCandidates(permissions.BasePermission):
-    """Owner, admin, recruiter, or hiring_manager can manage candidates."""
+    """Owner, admin, recruiter, or hiring_manager can manage candidates.
+    Viewers get read-only access."""
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated or not request.user.organization:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.role in ('owner', 'admin', 'recruiter', 'hiring_manager')
+
+
+class CanManageJobs(permissions.BasePermission):
+    """Owner, admin, or recruiter can create/update jobs.
+    Viewers and hiring_managers get read-only access."""
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated or not request.user.organization:
+            return False
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.role in ('owner', 'admin', 'recruiter')
+
+
+class CanDeleteJobs(permissions.BasePermission):
+    """Only owner or admin can delete jobs."""
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated or not request.user.organization:
+            return False
+        if request.method != 'DELETE':
+            return True
+        return request.user.role in ('owner', 'admin')
+
+
+class CanManageEmails(permissions.BasePermission):
+    """Owner, admin, recruiter, or hiring_manager can send emails and manage templates.
+    Viewers get read-only access."""
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated or not request.user.organization:

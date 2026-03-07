@@ -12,7 +12,7 @@ from .serializers import (
     SentEmailSerializer,
 )
 from .services import send_candidate_email
-from accounts.permissions import IsOrganizationMember
+from accounts.permissions import IsOrganizationMember, CanManageEmails
 from candidates.models import Candidate
 from jobs.models import Job
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class EmailTemplateListCreateView(generics.ListCreateAPIView):
     serializer_class = EmailTemplateSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageEmails]
 
     def get_queryset(self):
         queryset = EmailTemplate.objects.filter(
@@ -38,7 +38,7 @@ class EmailTemplateListCreateView(generics.ListCreateAPIView):
 
 class EmailTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EmailTemplateSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageEmails]
 
     def get_queryset(self):
         return EmailTemplate.objects.filter(
@@ -47,7 +47,7 @@ class EmailTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class SendCandidateEmailView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageEmails]
 
     def post(self, request, pk):
         org = request.user.organization
@@ -98,7 +98,7 @@ class SendCandidateEmailView(APIView):
 
 
 class BulkEmailView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageEmails]
 
     def post(self, request, job_id):
         org = request.user.organization

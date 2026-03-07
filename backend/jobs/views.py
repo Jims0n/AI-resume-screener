@@ -5,12 +5,22 @@ from rest_framework import status as http_status
 from .models import Job
 from .serializers import JobSerializer, JobCreateSerializer
 from .services import extract_skills_from_description
-from accounts.permissions import IsOrganizationMember, check_job_limit
+from accounts.permissions import (
+    IsOrganizationMember,
+    CanManageJobs,
+    CanDeleteJobs,
+    check_job_limit,
+)
 
 
 class JobViewSet(viewsets.ModelViewSet):
     serializer_class = JobSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsOrganizationMember,
+        CanManageJobs,
+        CanDeleteJobs,
+    ]
 
     def get_queryset(self):
         return Job.objects.filter(

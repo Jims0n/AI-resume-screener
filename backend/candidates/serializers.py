@@ -45,7 +45,7 @@ class CandidateDetailSerializer(serializers.ModelSerializer):
         model = Candidate
         fields = [
             'id', 'job', 'job_title', 'name', 'email', 'phone',
-            'resume_file', 'resume_url', 'resume_text', 'parsed_data',
+            'resume_url', 'resume_text', 'parsed_data',
             'overall_score', 'skill_match_score', 'experience_score',
             'education_score', 'scoring_reasoning', 'strengths', 'red_flags',
             'status', 'processed_at', 'created_at', 'skill_matches', 'notes',

@@ -22,7 +22,7 @@ from .serializers import (
 )
 from .tasks import process_resume
 from jobs.models import Job
-from accounts.permissions import IsOrganizationMember, check_resume_limit
+from accounts.permissions import IsOrganizationMember, CanManageCandidates, check_resume_limit
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def _get_org_candidate(pk, user):
 
 
 class ResumeUploadView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
     parser_classes = [MultiPartParser]
     throttle_scope = 'upload'
 
@@ -215,7 +215,7 @@ class CandidateDetailView(generics.RetrieveAPIView):
 
 class CandidateStatusUpdateView(generics.UpdateAPIView):
     serializer_class = CandidateStatusSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
     http_method_names = ['patch']
 
     def get_queryset(self):
@@ -225,7 +225,7 @@ class CandidateStatusUpdateView(generics.UpdateAPIView):
 
 
 class CandidateReprocessView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
     throttle_scope = 'ai_reprocess'
 
     def post(self, request, pk):
@@ -249,7 +249,7 @@ class CandidateReprocessView(APIView):
 # --- Candidate Notes ---
 
 class CandidateNoteListCreateView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
 
     def get(self, request, pk):
         candidate = _get_org_candidate(pk, request.user)
@@ -280,7 +280,7 @@ class CandidateNoteListCreateView(APIView):
 
 
 class CandidateNoteDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
 
     def _get_note(self, note_id, user):
         try:
@@ -338,7 +338,7 @@ class BatchDetailView(generics.RetrieveAPIView):
 # --- Candidate Comparison ---
 
 class CandidateCompareView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
 
     def post(self, request, job_id):
         job = _get_org_job(job_id, request.user)
@@ -404,7 +404,7 @@ class CandidateCompareView(APIView):
 # --- Export ---
 
 class CandidateExportView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember]
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
 
     def get(self, request, job_id):
         job = _get_org_job(job_id, request.user)
