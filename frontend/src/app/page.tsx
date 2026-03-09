@@ -1,139 +1,164 @@
 import Link from 'next/link';
+import { ArrowRight, FileText, Cpu, BarChart3, Shield, Zap, Globe } from 'lucide-react';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-      {/* Navbar */}
-      <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between h-16 px-6">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-200">
-              AI
-            </div>
-            <span className="font-bold text-lg text-slate-900">ResumeScreener</span>
+    <div className="min-h-screen bg-shortlyst-bg text-shortlyst-text font-sans scroll-smooth">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full border-b border-shortlyst-border bg-shortlyst-bg/80 backdrop-blur-md z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-2xl tracking-tight text-shortlyst-text">shortlyst.</span>
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-shortlyst-text/60">
+            <a href="#product" className="hover:text-shortlyst-text transition-colors">Product</a>
+            <a href="#how-it-works" className="hover:text-shortlyst-text transition-colors">How it works</a>
+            <a href="#vision" className="hover:text-shortlyst-text transition-colors">Vision</a>
+          </div>
+
+          <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              className="text-sm font-medium hover:text-shortlyst-text/80 transition-colors"
             >
               Sign In
             </Link>
             <Link
               href="/register"
-              className="bg-indigo-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md"
+              className="bg-shortlyst-accent text-shortlyst-bg px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-all"
             >
               Get Started
             </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Hero */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6 ring-1 ring-indigo-100">
-            <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-            Powered by AI
+      {/* Hero Section */}
+      <header className="pt-40 pb-24 px-6 border-b border-shortlyst-border">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8 inline-block px-3 py-1 border border-shortlyst-border rounded-full text-[10px] uppercase tracking-widest text-shortlyst-text/40">
+            Now in Early Access
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
-            Screen Resumes with{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-              AI-Powered
-            </span>{' '}
-            Precision
+          <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl leading-[0.9] tracking-tighter mb-8 max-w-4xl">
+            Refined talent <br />
+            discovery.
           </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Upload resumes, paste your job description, and let our AI extract skills, score candidates, and
-            rank them — all in seconds, not hours.
+          <p className="text-xl md:text-2xl text-shortlyst-text/60 max-w-2xl font-light leading-relaxed mb-12">
+            AI-powered resume screening, reimagined for the modern recruiter.
+            Spend less time filtering, more time hiring.
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/register"
-              className="bg-indigo-600 text-white text-base font-semibold px-8 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 animate-pulse-glow"
+              className="group bg-shortlyst-accent text-shortlyst-bg px-8 py-4 rounded-full text-lg font-semibold inline-flex items-center justify-center gap-2 hover:gap-3 transition-all"
             >
-              Start Screening for Free
+              Start screening
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
-              href="/login"
-              className="text-base font-semibold text-slate-700 px-6 py-3.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
-            >
-              Sign In →
-            </Link>
+            <button className="px-8 py-4 rounded-full border border-shortlyst-border text-lg font-medium hover:bg-shortlyst-text/5 transition-all">
+              Watch demo
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Feature Grid */}
+      <section id="product" className="py-24 px-6 border-b border-shortlyst-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-1">
+            <div className="p-10 border border-shortlyst-border -m-[0.5px] bg-shortlyst-bg">
+              <FileText className="w-8 h-8 mb-8 text-shortlyst-text/40" />
+              <h3 className="font-serif text-3xl mb-4">Volume at scale.</h3>
+              <p className="text-shortlyst-text/50 font-light leading-relaxed">
+                Upload hundreds of resumes in seconds. Our parsing engine extracts every nuance with surgical precision.
+              </p>
+            </div>
+
+            <div className="p-10 border border-shortlyst-border -m-[0.5px] bg-shortlyst-bg">
+              <Cpu className="w-8 h-8 mb-8 text-shortlyst-text/40" />
+              <h3 className="font-serif text-3xl mb-4">Neural scoring.</h3>
+              <p className="text-shortlyst-text/50 font-light leading-relaxed">
+                Move beyond keyword matching. Our AI understands experience, potential, and cultural alignment.
+              </p>
+            </div>
+
+            <div className="p-10 border border-shortlyst-border -m-[0.5px] bg-shortlyst-bg md:col-span-2 lg:col-span-1">
+              <BarChart3 className="w-8 h-8 mb-8 text-shortlyst-text/40" />
+              <h3 className="font-serif text-3xl mb-4">Data-led decisions.</h3>
+              <p className="text-shortlyst-text/50 font-light leading-relaxed">
+                Visualize your talent pool with advanced analytics and comparison tools that reveal the true outliers.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 px-6 bg-white border-y border-slate-100">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">How It Works</h2>
-            <p className="text-slate-600 max-w-xl mx-auto">Three simple steps to find your best candidates</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: '📄',
-                title: 'Upload Resumes',
-                desc: 'Drag & drop PDF or DOCX resumes. Upload one or hundreds at once.',
-                gradient: 'from-blue-500 to-indigo-500',
-              },
-              {
-                icon: '🤖',
-                title: 'AI Analysis',
-                desc: 'Our AI extracts skills, experience, and education — then scores every candidate against your requirements.',
-                gradient: 'from-indigo-500 to-purple-500',
-              },
-              {
-                icon: '🏆',
-                title: 'Ranked Results',
-                desc: 'Instantly see candidates ranked by fit. View skill matches, strengths, and red flags at a glance.',
-                gradient: 'from-purple-500 to-pink-500',
-              },
-            ].map((f, i) => (
-              <div
-                key={f.title}
-                className={`relative bg-white rounded-2xl p-8 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${i === 0 ? 'animate-fade-in' : i === 1 ? 'animate-fade-in-delay' : 'animate-fade-in-delay-2'
-                  }`}
-              >
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center text-2xl mb-5 shadow-lg`}>
-                  {f.icon}
+      {/* Process Section */}
+      <section id="how-it-works" className="py-24 px-6 border-b border-shortlyst-border bg-shortlyst-bg">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-20">
+            <div className="lg:w-1/3">
+              <h2 className="font-serif text-5xl mb-6">The shortlyst methodology.</h2>
+              <p className="text-shortlyst-text/60 font-light leading-relaxed">
+                We've distilled the recruitment process into three core pillars. Minimal effort, maximum output.
+              </p>
+            </div>
+
+            <div className="lg:w-2/3 space-y-16">
+              {[
+                { step: '01', title: 'Ingest', desc: 'Sync your job descriptions and candidate resumes. Simple drag-and-drop or API integration.' },
+                { step: '02', title: 'Synthesize', desc: 'Our AI analyzes and scores candidates across three dimensions: skills, experience, and education.' },
+                { step: '03', title: 'Accelerate', desc: 'Review your ranked shortlist and move your best candidates straight to the interview phase.' },
+              ].map((item) => (
+                <div key={item.step} className="flex gap-8 group">
+                  <span className="font-serif text-xl text-shortlyst-text/30 group-hover:text-shortlyst-text/80 transition-colors pt-1">
+                    {item.step}
+                  </span>
+                  <div>
+                    <h4 className="font-serif text-4xl mb-3">{item.title}</h4>
+                    <p className="text-shortlyst-text/50 text-xl font-light leading-relaxed max-w-xl">
+                      {item.desc}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{f.title}</h3>
-                <p className="text-slate-600 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center animate-fade-in">
-            {[
-              { stat: '90%', label: 'Time Saved' },
-              { stat: '50+', label: 'Skills Tracked' },
-              { stat: '3', label: 'Score Dimensions' },
-              { stat: '∞', label: 'Resumes' },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="text-3xl font-extrabold text-indigo-600 mb-1">{s.stat}</div>
-                <div className="text-sm text-slate-500 font-medium">{s.label}</div>
-              </div>
-            ))}
-          </div>
+      {/* Trust/Vision Section */}
+      <section id="vision" className="py-32 px-6 border-b border-shortlyst-border">
+        <div className="max-w-3xl mx-auto text-center">
+          <Globe className="w-12 h-12 mx-auto mb-10 text-shortlyst-text/20" />
+          <h2 className="font-serif text-5xl md:text-7xl mb-12 tracking-tight">
+            The future of hiring is quiet.
+          </h2>
+          <p className="text-2xl text-shortlyst-text/60 font-light leading-relaxed italic mb-12">
+            "We believe the best tech fades into the background, leaving only the clarity you need to make the right choice."
+          </p>
+          <div className="h-px w-24 bg-shortlyst-border mx-auto mb-12" />
+          <p className="uppercase tracking-[0.2em] text-[10px] text-shortlyst-text/40">
+            Founded in 2026. Built for builders.
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between text-sm text-slate-500">
-          <span>© 2026 AI Resume Screener. All rights reserved.</span>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-slate-700">Privacy</a>
-            <a href="#" className="hover:text-slate-700">Terms</a>
+      <footer className="py-20 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+          <div>
+            <span className="font-serif text-4xl mb-8 block">shortlyst.</span>
+            <div className="flex gap-8 text-xs uppercase tracking-widest text-shortlyst-text/40 font-medium">
+              <a href="#" className="hover:text-shortlyst-text transition-colors">Privacy</a>
+              <a href="#" className="hover:text-shortlyst-text transition-colors">Terms</a>
+              <a href="#" className="hover:text-shortlyst-text transition-colors">Security</a>
+            </div>
+          </div>
+          <div className="text-xs text-shortlyst-text/30 font-light">
+            © 2026 shortlyst. All rights reserved. <br className="md:hidden" />
+            Empowering teams to find the signal in the noise.
           </div>
         </div>
       </footer>

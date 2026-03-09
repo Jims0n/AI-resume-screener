@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useJobs } from '@/hooks/useJobs';
 import { useCandidates } from '@/hooks/useCandidates';
@@ -9,7 +9,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge, { getStatusVariant } from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
-import Spinner from '@/components/ui/Spinner';
+import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 
 export default function JobDetailPage() {
@@ -50,15 +50,11 @@ export default function JobDetailPage() {
 
     const bulkAction = async (status: string) => {
         const ids = Array.from(selected);
-        const results = await Promise.allSettled(
-            ids.map((id) => updateStatus(id, status))
-        );
+        const results = await Promise.allSettled(ids.map((id) => updateStatus(id, status)));
         const failed = results.filter((r) => r.status === 'rejected').length;
         setSelected(new Set());
         if (failed === 0) {
             addToast(`${ids.length} candidate(s) ${status}`, 'success');
-        } else if (failed === ids.length) {
-            addToast(`Failed to update all ${ids.length} candidates`, 'error');
         } else {
             addToast(`${ids.length - failed} updated, ${failed} failed`, 'error');
         }
@@ -74,9 +70,22 @@ export default function JobDetailPage() {
         }
     };
 
+    const handleCompare = () => {
+        if (selected.size < 2) {
+            addToast('Select at least 2 candidates to compare', 'error');
+            return;
+        }
+        if (selected.size > 5) {
+            addToast('Maximum 5 candidates for comparison', 'error');
+            return;
+        }
+        const ids = Array.from(selected).join(',');
+        router.push(`/jobs/${jobId}/compare?candidates=${ids}`);
+    };
+
     const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
         <th
-            className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-700 transition-colors select-none"
+            className="px-4 py-3 text-left text-xs font-medium text-sh-text2 uppercase tracking-wider cursor-pointer hover:text-sh-text transition-colors select-none"
             onClick={() => toggleSort(field)}
         >
             <span className="inline-flex items-center gap-1">
@@ -88,7 +97,12 @@ export default function JobDetailPage() {
     );
 
     if (jobLoading && !currentJob) {
-        return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
+        return (
+            <div className="space-y-4">
+                <Skeleton height={80} className="rounded-xl" />
+                <Skeleton height={400} className="rounded-xl" />
+            </div>
+        );
     }
 
     return (
@@ -98,36 +112,30 @@ export default function JobDetailPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-2xl font-bold text-slate-900">{currentJob.title}</h1>
+                            <h1 className="font-serif text-3xl tracking-tight text-sh-text">{currentJob.title}</h1>
                             <Badge variant={getStatusVariant(currentJob.status)}>{currentJob.status}</Badge>
                         </div>
-                        <p className="text-slate-500 text-sm">
+                        <p className="text-sh-text2 font-light text-sm">
                             {currentJob.candidate_count} candidates · Created {new Date(currentJob.created_at).toLocaleDateString()}
                         </p>
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="secondary" onClick={() => router.push(`/jobs/${jobId}/upload`)}>
-                            Upload Resumes
-                        </Button>
-                        <Button variant="secondary" onClick={() => router.push(`/jobs/${jobId}/analytics`)}>
-                            Analytics
-                        </Button>
-                        <Button variant="secondary" onClick={handleExport}>
-                            Export CSV
-                        </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button variant="secondary" onClick={() => router.push(`/jobs/${jobId}/upload`)}>Upload Resumes</Button>
+                        <Button variant="secondary" onClick={() => router.push(`/jobs/${jobId}/analytics`)}>Analytics</Button>
+                        <Button variant="secondary" onClick={handleExport}>Export CSV</Button>
                     </div>
                 </div>
             )}
 
             {/* Filters */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 overflow-x-auto">
                 {['', 'pending', 'processing', 'scored', 'shortlisted', 'rejected'].map((s) => (
                     <button
                         key={s}
                         onClick={() => setStatusFilter(s)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === s
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${statusFilter === s
+                            ? 'bg-sh-accent text-sh-bg'
+                            : 'bg-transparent text-sh-text2 border border-sh-border hover:bg-sh-bg3 hover:text-sh-text'
                             }`}
                     >
                         {s || 'All'}
@@ -137,16 +145,19 @@ export default function JobDetailPage() {
 
             {/* Bulk actions */}
             {selected.size > 0 && (
-                <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-3 mb-4 flex items-center gap-4">
-                    <span className="text-sm font-medium text-indigo-700">{selected.size} selected</span>
+                <div className="bg-sh-bg2 border border-sh-border rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
+                    <span className="text-sm font-medium text-sh-text">{selected.size} selected</span>
                     <Button size="sm" onClick={() => bulkAction('shortlisted')}>Shortlist</Button>
                     <Button size="sm" variant="danger" onClick={() => bulkAction('rejected')}>Reject</Button>
+                    <Button size="sm" variant="secondary" onClick={handleCompare}>Compare</Button>
                     <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
                 </div>
             )}
 
             {/* Candidates Table */}
-            {candidates.length === 0 ? (
+            {candLoading && candidates.length === 0 ? (
+                <Skeleton height={300} className="rounded-xl" />
+            ) : candidates.length === 0 ? (
                 <EmptyState
                     icon="📄"
                     title="No candidates yet"
@@ -158,30 +169,30 @@ export default function JobDetailPage() {
                 <Card noPadding>
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-slate-50 border-b border-slate-200">
+                            <thead className="bg-sh-bg3 border-b border-sh-border">
                                 <tr>
                                     <th className="px-4 py-3 w-10">
                                         <input
                                             type="checkbox"
                                             checked={selected.size === candidates.length && candidates.length > 0}
                                             onChange={selectAll}
-                                            className="rounded border-slate-300"
+                                            className="rounded border-sh-border bg-sh-bg2"
                                         />
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">#</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-sh-text2 uppercase">#</th>
                                     <SortHeader field="name">Name</SortHeader>
                                     <SortHeader field="overall_score">Overall</SortHeader>
                                     <SortHeader field="skill_match_score">Skills</SortHeader>
                                     <SortHeader field="experience_score">Experience</SortHeader>
                                     <SortHeader field="education_score">Education</SortHeader>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-medium text-sh-text2 uppercase">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-sh-border">
                                 {candidates.map((c, idx) => (
                                     <tr
                                         key={c.id}
-                                        className="hover:bg-slate-50 cursor-pointer transition-colors"
+                                        className="hover:bg-sh-bg3 cursor-pointer transition-colors"
                                         onClick={() => router.push(`/candidates/${c.id}`)}
                                     >
                                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -189,43 +200,31 @@ export default function JobDetailPage() {
                                                 type="checkbox"
                                                 checked={selected.has(c.id)}
                                                 onChange={() => toggleSelect(c.id)}
-                                                className="rounded border-slate-300"
+                                                className="rounded border-sh-border bg-sh-bg2"
                                             />
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-slate-400 font-mono">{idx + 1}</td>
+                                        <td className="px-4 py-3 text-sm text-sh-text2 font-mono">{idx + 1}</td>
                                         <td className="px-4 py-3">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-900">{c.name}</p>
-                                                {c.email && <p className="text-xs text-slate-400">{c.email}</p>}
+                                                <p className="text-sm font-medium text-sh-text">{c.name}</p>
+                                                {c.email && <p className="text-xs text-sh-text2 font-light mt-0.5">{c.email}</p>}
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 w-40">
                                             {c.overall_score !== null ? (
                                                 <ProgressBar value={c.overall_score} />
                                             ) : (
-                                                <span className="text-xs text-slate-400">—</span>
+                                                <span className="text-xs text-sh-muted">—</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 w-32">
-                                            {c.skill_match_score !== null ? (
-                                                <ProgressBar value={c.skill_match_score} size="sm" />
-                                            ) : (
-                                                <span className="text-xs text-slate-400">—</span>
-                                            )}
+                                            {c.skill_match_score !== null ? <ProgressBar value={c.skill_match_score} size="sm" /> : <span className="text-xs text-sh-muted">—</span>}
                                         </td>
                                         <td className="px-4 py-3 w-32">
-                                            {c.experience_score !== null ? (
-                                                <ProgressBar value={c.experience_score} size="sm" />
-                                            ) : (
-                                                <span className="text-xs text-slate-400">—</span>
-                                            )}
+                                            {c.experience_score !== null ? <ProgressBar value={c.experience_score} size="sm" /> : <span className="text-xs text-sh-muted">—</span>}
                                         </td>
                                         <td className="px-4 py-3 w-32">
-                                            {c.education_score !== null ? (
-                                                <ProgressBar value={c.education_score} size="sm" />
-                                            ) : (
-                                                <span className="text-xs text-slate-400">—</span>
-                                            )}
+                                            {c.education_score !== null ? <ProgressBar value={c.education_score} size="sm" /> : <span className="text-xs text-sh-muted">—</span>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <Badge variant={getStatusVariant(c.status)}>{c.status}</Badge>

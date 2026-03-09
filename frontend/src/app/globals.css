@@ -2,33 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-primary: #1c1c1c;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2a2a2a;
+  --bg-sidebar: #1a1a1a;
+
+  --text-primary: #e8e4d9;
+  --text-secondary: #8a8578;
+  --text-muted: #6b6560;
+
+  --border: #2a2a2a;
+  --border-hover: #3a3a3a;
+
+  --accent-cream: #e8e4d9;
+  --accent-cream-hover: #d4d0c5;
+
+  --status-success: #7c9a72;
+  --status-success-bg: #2d3a2d;
+  --status-warning: #b8a855;
+  --status-warning-bg: #3a3520;
+  --status-danger: #c45c5c;
+  --status-danger-bg: #3a2020;
+  --status-info: #6b8ab5;
+  --status-info-bg: #1e2a3a;
+
+  --chart-1: #7c9a72;
+  --chart-2: #b8a855;
+  --chart-3: #6b8ab5;
+  --chart-4: #c45c5c;
+  --chart-5: #d4c8a0;
+  --chart-6: #8a7a5a;
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply antialiased selection:bg-accent selection:text-background;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
+
+  /* Fix Chrome autofill overriding dark mode backgrounds */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-primary) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 @layer utilities {
   @keyframes slide-in {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
   }
+
   .animate-slide-in {
     animation: slide-in 0.3s ease-out;
   }
 
   @keyframes modal-in {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
+
   .animate-modal-in {
     animation: modal-in 0.2s ease-out;
   }
 
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   .animate-fade-in {
     animation: fade-in 0.4s ease-out;
   }
@@ -36,18 +109,44 @@
   .animate-fade-in-delay {
     animation: fade-in 0.4s ease-out 0.1s both;
   }
+
   .animate-fade-in-delay-2 {
     animation: fade-in 0.4s ease-out 0.2s both;
   }
+
   .animate-fade-in-delay-3 {
     animation: fade-in 0.4s ease-out 0.3s both;
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+    }
+
+    50% {
+      box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
+    }
   }
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
   }
 }

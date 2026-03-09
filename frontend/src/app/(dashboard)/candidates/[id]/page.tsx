@@ -1,29 +1,38 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCandidates } from '@/hooks/useCandidates';
+import { useEmails } from '@/hooks/useEmails';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useToast } from '@/components/ui/Toast';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge, { getStatusVariant } from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
-import Spinner from '@/components/ui/Spinner';
+import Skeleton from '@/components/ui/Skeleton';
+import NotesSection from '@/components/candidates/NotesSection';
+import SendEmailModal from '@/components/candidates/SendEmailModal';
 import {
     RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
     ResponsiveContainer,
 } from 'recharts';
+import { Check, X, Mail, RefreshCw, Phone, ChevronLeft } from 'lucide-react';
 
 export default function CandidateDetailPage() {
     const params = useParams();
     const router = useRouter();
     const candidateId = Number(params.id);
     const { currentCandidate: candidate, fetchCandidate, updateStatus, reprocess, loading } = useCandidates();
+    const { sentEmails, fetchSentEmails } = useEmails();
     const { addToast } = useToast();
+    const [emailModalOpen, setEmailModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'emails'>('details');
 
     useEffect(() => {
         fetchCandidate(candidateId);
-    }, [candidateId, fetchCandidate]);
+        fetchSentEmails(candidateId);
+    }, [candidateId, fetchCandidate, fetchSentEmails]);
 
     const handleStatusChange = async (status: string) => {
         await updateStatus(candidateId, status);
@@ -37,12 +46,49 @@ export default function CandidateDetailPage() {
         fetchCandidate(candidateId);
     };
 
+    // Keyboard shortcuts
+    const shortcuts = useMemo(() => ({
+        s: () => { if (candidate) handleStatusChange('shortlisted'); },
+        r: () => { if (candidate) handleStatusChange('rejected'); },
+        e: () => { if (candidate) setEmailModalOpen(true); },
+        n: () => setActiveTab('notes'),
+    }), [candidate]);
+
+    useKeyboardShortcuts(shortcuts, !!candidate);
+
     if (loading && !candidate) {
-        return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
+        return (
+            <div className="animate-fade-in">
+                <div className="mb-8">
+                    <Skeleton height={16} width={120} className="mb-2" />
+                    <Skeleton height={32} width={250} className="mb-2" />
+                    <Skeleton height={14} width={300} />
+                </div>
+                <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                        <Skeleton height={140} />
+                        <Skeleton height={320} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Skeleton height={160} />
+                            <Skeleton height={160} />
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton height={100} />
+                        <Skeleton height={180} />
+                        <Skeleton height={200} />
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (!candidate) {
-        return <div className="text-center py-20 text-slate-500">Candidate not found</div>;
+        return (
+            <div className="text-center py-20 text-slate-500 dark:text-slate-400">
+                Candidate not found
+            </div>
+        );
     }
 
     const radarData = [
@@ -56,55 +102,104 @@ export default function CandidateDetailPage() {
     const niceSkills = candidate.skill_matches?.filter((s) => !s.is_required) || [];
 
     const proficiencyColors: Record<string, string> = {
-        expert: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-        advanced: 'bg-blue-50 text-blue-700 ring-blue-600/20',
-        intermediate: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-        beginner: 'bg-orange-50 text-orange-700 ring-orange-600/20',
-        none: 'bg-red-50 text-red-700 ring-red-600/20',
+        expert: 'bg-[#2d3a2d] text-[#7c9a72]',
+        advanced: 'bg-[#1e2a3a] text-[#6b8ab5]',
+        intermediate: 'bg-[#3a3520] text-[#b8a855]',
+        beginner: 'bg-[#3a3520] text-[#b8a855]',
+        none: 'bg-[#3a2020] text-[#c45c5c]',
     };
+
+    function timeAgo(dateStr: string): string {
+        const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
+    }
+
+    const tabs = [
+        { key: 'details' as const, label: 'Resume Details' },
+        { key: 'notes' as const, label: `Notes` },
+        { key: 'emails' as const, label: `Emails (${sentEmails.length})` },
+    ];
 
     return (
         <div className="animate-fade-in">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <button onClick={() => router.back()} className="text-sm text-indigo-600 hover:text-indigo-700 mb-2">
-                        ← Back to rankings
+                    <button
+                        onClick={() => router.back()}
+                        className="text-sm text-sh-text2 hover:text-sh-text mb-2 flex items-center gap-1 transition-colors"
+                    >
+                        <ChevronLeft className="w-4 h-4" /> Back to rankings
                     </button>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold text-slate-900">{candidate.name}</h1>
+                        <h1 className="font-serif text-3xl tracking-tight text-sh-text">{candidate.name}</h1>
                         <Badge variant={getStatusVariant(candidate.status)}>{candidate.status}</Badge>
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-slate-500">
-                        {candidate.email && <span>📧 {candidate.email}</span>}
-                        {candidate.phone && <span>📞 {candidate.phone}</span>}
+                    <div className="flex items-center gap-4 mt-2 text-sm text-sh-text2 font-light">
+                        {candidate.email && <span className="flex items-center gap-1.5"><Mail className="w-4 h-4" /> {candidate.email}</span>}
+                        {candidate.phone && <span className="flex items-center gap-1.5"><Phone className="w-4 h-4" /> {candidate.phone}</span>}
+                        {candidate.job_title && (
+                            <span className="text-xs bg-sh-bg3 text-sh-text px-2 py-0.5 rounded border border-sh-border">
+                                {candidate.job_title}
+                            </span>
+                        )}
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={() => handleStatusChange('shortlisted')}>Shortlist</Button>
-                    <Button variant="danger" onClick={() => handleStatusChange('rejected')}>Reject</Button>
-                    <Button variant="secondary" onClick={handleReprocess}>Reprocess</Button>
+                <div className="flex gap-2 flex-wrap">
+                    <Button onClick={() => handleStatusChange('shortlisted')} title="Shortcut: S" className="flex gap-2">
+                        <Check className="w-4 h-4" /> Shortlist
+                    </Button>
+                    <Button variant="danger" onClick={() => handleStatusChange('rejected')} title="Shortcut: R" className="flex gap-2">
+                        <X className="w-4 h-4" /> Reject
+                    </Button>
+                    <Button variant="secondary" onClick={() => setEmailModalOpen(true)} title="Shortcut: E" className="flex gap-2">
+                        <Mail className="w-4 h-4" /> Email
+                    </Button>
+                    <Button variant="secondary" onClick={handleReprocess} className="flex gap-2">
+                        <RefreshCw className="w-4 h-4" /> Reprocess
+                    </Button>
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-6">
-                {/* Left Column — Scores */}
+            {/* Keyboard shortcuts hint */}
+            <div className="hidden lg:flex items-center gap-3 mb-6 text-xs text-sh-muted font-light">
+                <span>Keyboard shortcuts:</span>
+                <kbd className="px-1.5 py-0.5 bg-sh-bg2 rounded text-sh-text2 font-mono border border-sh-border">S</kbd>
+                <span>Shortlist</span>
+                <kbd className="px-1.5 py-0.5 bg-sh-bg2 rounded text-sh-text2 font-mono border border-sh-border">R</kbd>
+                <span>Reject</span>
+                <kbd className="px-1.5 py-0.5 bg-sh-bg2 rounded text-sh-text2 font-mono border border-sh-border">E</kbd>
+                <span>Email</span>
+                <kbd className="px-1.5 py-0.5 bg-sh-bg2 rounded text-sh-text2 font-mono border border-sh-border">N</kbd>
+                <span>Notes</span>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+                {/* Left Column — Scores (1/3) */}
                 <div className="space-y-6">
                     {/* Overall Score */}
                     <Card>
                         <div className="text-center">
-                            <div className="text-5xl font-extrabold text-slate-900 mb-1">{candidate.overall_score ?? '—'}</div>
-                            <p className="text-sm text-slate-500">Overall Score</p>
+                            <div className="text-5xl font-serif text-sh-text mb-1 drop-shadow-sm">
+                                {candidate.overall_score ?? '—'}
+                            </div>
+                            <p className="text-sm text-sh-text2 font-light uppercase tracking-wider mt-2">Overall Score</p>
                         </div>
                     </Card>
 
                     {/* Radar Chart */}
-                    <Card header={<h3 className="font-semibold text-slate-700">Score Breakdown</h3>}>
-                        <div className="h-64">
+                    <Card header={<h3 className="font-semibold text-slate-700 dark:text-slate-300">Score Breakdown</h3>}>
+                        <div className="h-56">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart data={radarData}>
-                                    <PolarGrid stroke="#e2e8f0" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#64748b' }} />
+                                    <PolarGrid stroke="#94a3b8" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
                                     <Radar name="Score" dataKey="score" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.3} />
                                 </RadarChart>
@@ -117,7 +212,7 @@ export default function CandidateDetailPage() {
                                 { label: 'Education', value: candidate.education_score },
                             ].map(({ label, value }) => (
                                 <div key={label}>
-                                    <p className="text-xs text-slate-500 mb-1">{label}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
                                     <ProgressBar value={value ?? 0} size="md" />
                                 </div>
                             ))}
@@ -125,142 +220,280 @@ export default function CandidateDetailPage() {
                     </Card>
 
                     {/* Strengths & Red Flags */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Card header={<h3 className="font-semibold text-emerald-700">✓ Strengths</h3>}>
-                            <ul className="space-y-2">
-                                {candidate.strengths?.map((s, i) => (
-                                    <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                                        <span className="text-emerald-500 mt-0.5">•</span>
-                                        {s}
+                    <Card header={<h3 className="font-serif text-lg text-sh-text">💪 Strengths</h3>}>
+                        {candidate.strengths && candidate.strengths.length > 0 ? (
+                            <ul className="space-y-3">
+                                {candidate.strengths.map((s, i) => (
+                                    <li key={i} className="text-sm text-sh-text font-light flex items-start gap-2">
+                                        <span className="text-[#7c9a72] mt-0.5">•</span>
+                                        <span>{s}</span>
                                     </li>
                                 ))}
-                                {(candidate.strengths?.length || 0) === 0 && <p className="text-sm text-slate-400">None identified</p>}
                             </ul>
-                        </Card>
-                        <Card header={<h3 className="font-semibold text-red-700">⚠ Red Flags</h3>}>
-                            <ul className="space-y-2">
-                                {candidate.red_flags?.map((f, i) => (
-                                    <li key={i} className="text-sm text-slate-700 flex items-start gap-2">
-                                        <span className="text-red-500 mt-0.5">•</span>
-                                        {f}
-                                    </li>
-                                ))}
-                                {(candidate.red_flags?.length || 0) === 0 && <p className="text-sm text-slate-400">None identified</p>}
-                            </ul>
-                        </Card>
-                    </div>
+                        ) : (
+                            <p className="text-sm text-sh-muted font-light">None identified</p>
+                        )}
+                    </Card>
 
-                    {/* AI Reasoning */}
+                    <Card header={<h3 className="font-serif text-lg text-sh-text">⚠️ Red Flags</h3>}>
+                        {candidate.red_flags && candidate.red_flags.length > 0 ? (
+                            <ul className="space-y-3">
+                                {candidate.red_flags.map((f, i) => (
+                                    <li key={i} className="text-sm text-sh-text font-light flex items-start gap-2">
+                                        <span className="text-[#c45c5c] mt-0.5">•</span>
+                                        <span>{f}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-sh-muted font-light">None identified</p>
+                        )}
+                    </Card>
+
                     {candidate.scoring_reasoning && (
-                        <Card header={<h3 className="font-semibold text-slate-700">🤖 AI Reasoning</h3>}>
-                            <p className="text-sm text-slate-600 leading-relaxed">{candidate.scoring_reasoning}</p>
-                        </Card>
+                        <div className="lg:col-span-3">
+                            <Card header={<h3 className="font-serif text-lg text-sh-text">🤖 AI Reasoning</h3>}>
+                                <p className="text-sm text-sh-text2 font-light leading-relaxed">
+                                    {candidate.scoring_reasoning}
+                                </p>
+                            </Card>
+                        </div>
                     )}
                 </div>
 
-                {/* Right Column — Resume Details */}
-                <div className="space-y-6">
-                    {/* Parsed Data */}
-                    {parsed.summary && (
-                        <Card header={<h3 className="font-semibold text-slate-700">Summary</h3>}>
-                            <p className="text-sm text-slate-600">{parsed.summary}</p>
-                        </Card>
-                    )}
-
-                    {/* Skills Tags */}
-                    {parsed.skills && parsed.skills.length > 0 && (
-                        <Card header={<h3 className="font-semibold text-slate-700">Skills</h3>}>
-                            <div className="flex flex-wrap gap-2">
-                                {parsed.skills.map((s: string) => (
-                                    <span key={s} className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                                        {s}
-                                    </span>
+                {/* Center + Right Column (2/3) — Tabbed content */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="mt-8 mb-6">
+                        <nav className="flex gap-6">
+                            <div className="flex border-b border-sh-border">
+                                {tabs.map((tab) => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`pb-3 px-2 text-sm font-medium transition-colors ${activeTab === tab.key
+                                            ? 'border-b-2 border-sh-accent text-sh-accent'
+                                            : 'border-b-2 border-transparent text-sh-text2 hover:text-sh-text hover:border-sh-borderHover'
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
                                 ))}
                             </div>
-                        </Card>
-                    )}
+                        </nav>
+                    </div>
 
-                    {/* Experience */}
-                    {parsed.experience && parsed.experience.length > 0 && (
-                        <Card header={<h3 className="font-semibold text-slate-700">Experience</h3>}>
-                            <div className="space-y-4">
-                                {parsed.experience.map((exp: any, i: number) => (
-                                    <div key={i} className="border-l-2 border-indigo-200 pl-4">
-                                        <p className="text-sm font-semibold text-slate-900">{exp.title}</p>
-                                        <p className="text-sm text-slate-600">{exp.company}</p>
-                                        <p className="text-xs text-slate-400">{exp.duration}</p>
-                                        {exp.highlights?.length > 0 && (
-                                            <ul className="mt-1 space-y-0.5">
-                                                {exp.highlights.map((h: string, j: number) => (
-                                                    <li key={j} className="text-xs text-slate-500">• {h}</li>
-                                                ))}
-                                            </ul>
-                                        )}
+                    {/* Tab Content: Details */}
+                    {activeTab === 'details' && (
+                        <div className="space-y-6">
+                            {/* Summary */}
+                            {parsed.summary && (
+                                <Card header={<h3 className="font-serif text-lg text-sh-text">Summary</h3>}>
+                                    <p className="text-sm text-sh-text font-light">{parsed.summary}</p>
+                                </Card>
+                            )}
+
+                            {/* Skills */}
+                            {parsed.skills && parsed.skills.length > 0 && (
+                                <Card header={<h3 className="font-serif text-lg text-sh-text">Skills</h3>}>
+                                    <div className="flex flex-wrap gap-2">
+                                        {parsed.skills.map((skill: string, i: number) => (
+                                            <span
+                                                key={i}
+                                                className="bg-sh-bg3 border border-sh-border text-sh-text px-2.5 py-1 rounded-full text-xs font-medium"
+                                            >
+                                                {skill}
+                                            </span>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </Card>
-                    )}
+                                </Card>
+                            )}
 
-                    {/* Education */}
-                    {parsed.education && parsed.education.length > 0 && (
-                        <Card header={<h3 className="font-semibold text-slate-700">Education</h3>}>
-                            <div className="space-y-3">
-                                {parsed.education.map((edu: any, i: number) => (
-                                    <div key={i}>
-                                        <p className="text-sm font-semibold text-slate-900">{edu.degree}</p>
-                                        <p className="text-sm text-slate-600">{edu.institution}</p>
-                                        {edu.year && <p className="text-xs text-slate-400">{edu.year}</p>}
+                            {/* Experience */}
+                            {parsed.experience && parsed.experience.length > 0 && (
+                                <Card header={<h3 className="font-serif text-lg text-sh-text">Experience</h3>}>
+                                    <div className="space-y-6">
+                                        {parsed.experience.map((exp: any, i: number) => (
+                                            <div key={i} className="border-l border-sh-border pl-4">
+                                                <p className="text-sm font-medium text-sh-text">{exp.title}</p>
+                                                <p className="text-sm text-sh-text2">{exp.company}</p>
+                                                <p className="text-xs text-sh-muted">{exp.duration}</p>
+                                                {exp.highlights && exp.highlights.length > 0 && (
+                                                    <ul className="mt-3 space-y-1.5">
+                                                        {exp.highlights.map((h: string, j: number) => (
+                                                            <li key={j} className="text-xs text-sh-text2 font-light">• {h}</li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </Card>
+                            )}
+
+                            {/* Education */}
+                            {parsed.education && parsed.education.length > 0 && (
+                                <Card header={<h3 className="font-serif text-lg text-sh-text">Education</h3>}>
+                                    <div className="space-y-4">
+                                        {parsed.education.map((edu: any, i: number) => (
+                                            <div key={i} className="flex gap-4">
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-sh-text">{edu.degree}</p>
+                                                    <p className="text-sm text-sh-text2">{edu.institution}</p>
+                                                    {edu.year && <p className="text-xs text-sh-muted">{edu.year}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
+
+                            {/* Raw Content Viewer (Optional / Hidden by default) */}
+                            {candidate.resume_text && (
+                                <Card header={<h3 className="font-serif text-lg text-sh-text">Resume Text</h3>}>
+                                    <pre className="text-xs text-sh-text2 font-light whitespace-pre-wrap font-mono max-h-96 overflow-y-auto bg-sh-bg3 border border-sh-border p-4 rounded-xl">
+                                        {candidate.resume_text}
+                                    </pre>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Tab Content: Notes */}
+                    {activeTab === 'notes' && (
+                        <Card>
+                            <NotesSection candidateId={candidateId} />
                         </Card>
                     )}
 
-                    {/* Resume Text */}
-                    {candidate.resume_text && (
-                        <Card header={<h3 className="font-semibold text-slate-700">Resume Text</h3>}>
-                            <pre className="text-xs text-slate-600 whitespace-pre-wrap font-mono max-h-96 overflow-y-auto bg-slate-50 p-4 rounded-lg">
-                                {candidate.resume_text}
-                            </pre>
-                        </Card>
+                    {/* Tab Content: Emails */}
+                    {activeTab === 'emails' && (
+                        <div className="lg:col-span-2 space-y-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-serif text-xl tracking-tight text-sh-text">
+                                    Communication History
+                                </h3>
+                                <Button size="sm" onClick={() => setEmailModalOpen(true)}>
+                                    ✉ Send Email
+                                </Button>
+                                <Button variant="secondary" size="sm" onClick={() => fetchSentEmails(candidateId)} className="flex gap-1.5">
+                                    <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                                </Button>
+                            </div>
+
+                            {loading ? (
+                                <div className="space-y-4 mb-4">
+                                    <Skeleton height={120} className="rounded-xl" />
+                                    <Skeleton height={120} className="rounded-xl" />
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {sentEmails.length === 0 ? (
+                                        <Card>
+                                            <div className="text-center py-8 text-sh-muted">
+                                                <div className="text-3xl mb-2">
+                                                    <Mail className="h-8 w-8 mx-auto" />
+                                                </div>
+                                                <p className="text-sm font-light">No emails sent to this candidate yet.</p>
+                                            </div>
+                                        </Card>
+                                    ) : (
+                                        sentEmails.map((email) => (
+                                            <Card key={email.id} noPadding>
+                                                <div className="p-4 sm:p-5">
+                                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-3">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-sh-text">
+                                                                {email.subject}
+                                                            </p>
+                                                            <p className="text-xs text-sh-text2 font-light mt-1 line-clamp-2">
+                                                                {email.body}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:gap-2 w-full sm:w-auto flex-shrink-0">
+                                                            <span className="text-xs text-sh-muted">
+                                                                {timeAgo(email.created_at)}
+                                                            </span>
+                                                            <Badge
+                                                                variant={email.status === 'sent' ? 'success' : email.status === 'failed' ? 'danger' : 'neutral'}
+                                                            >
+                                                                {email.status}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    {email.template_name && (
+                                                        <div className="mt-3 pt-3 border-t border-sh-border">
+                                                            <span className="text-xs text-sh-muted">
+                                                                Sent via {email.template_name}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </Card>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Skill Match Grid */}
-            <div className="mt-8">
-                <Card header={<h3 className="font-semibold text-slate-700">Skill Match Analysis</h3>} noPadding>
-                    {[
-                        { title: 'Required Skills', skills: requiredSkills },
-                        { title: 'Nice-to-Have Skills', skills: niceSkills },
-                    ].map(({ title, skills }) => (
-                        skills.length > 0 && (
-                            <div key={title}>
-                                <div className="px-6 py-3 bg-slate-50 border-b border-slate-100">
-                                    <h4 className="text-xs font-semibold text-slate-500 uppercase">{title}</h4>
-                                </div>
-                                <div className="divide-y divide-slate-100">
-                                    {skills.map((sm) => (
-                                        <div key={sm.id} className="flex items-center gap-4 px-6 py-3">
-                                            <span className={`text-lg ${sm.found ? 'text-emerald-500' : 'text-red-400'}`}>
-                                                {sm.found ? '✓' : '✗'}
-                                            </span>
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium text-slate-900">{sm.skill_name}</p>
-                                                {sm.evidence && <p className="text-xs text-slate-500 mt-0.5">{sm.evidence}</p>}
+            {activeTab === 'details' && (
+                <div className="mt-8">
+                    <Card
+                        header={<h3 className="font-serif text-xl tracking-tight text-sh-text">Skill Match Analysis</h3>}
+                        noPadding
+                    >
+                        {[
+                            { title: 'Required Skills', skills: requiredSkills },
+                            { title: 'Nice-to-Have Skills', skills: niceSkills },
+                        ].map(({ title, skills }) => (
+                            skills.length > 0 && (
+                                <div key={title}>
+                                    <div className="px-6 py-4 bg-sh-bg3 border-b border-sh-border">
+                                        <h4 className="text-xs font-serif font-medium text-sh-text2 uppercase tracking-wide">
+                                            {title}
+                                        </h4>
+                                    </div>
+                                    <div className="divide-y divide-sh-border">
+                                        {skills.map((sm, idx) => (
+                                            <div key={idx} className="flex items-center gap-4 px-6 py-4">
+                                                <span className={`text-lg ${sm.found ? 'text-[#7c9a72]' : 'text-[#c45c5c]'}`}>
+                                                    {sm.found ? '✓' : '✗'}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-sh-text">
+                                                        {sm.skill_name}
+                                                    </p>
+                                                    {sm.evidence && (
+                                                        <p className="text-xs text-sh-muted mt-0.5">
+                                                            {sm.evidence}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${proficiencyColors[sm.proficiency?.toLowerCase()] || proficiencyColors['none']}`}>
+                                                    {sm.proficiency || 'None'}
+                                                </span>
                                             </div>
-                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${proficiencyColors[sm.proficiency]}`}>
-                                                {sm.proficiency}
-                                            </span>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )
-                    ))}
-                </Card>
-            </div>
+                            )
+                        ))}
+                    </Card>
+                </div>
+            )}
+
+            {/* Email Modal */}
+            <SendEmailModal
+                isOpen={emailModalOpen}
+                onClose={() => {
+                    setEmailModalOpen(false);
+                    fetchSentEmails(candidateId);
+                }}
+                candidate={candidate}
+            />
         </div>
     );
 }

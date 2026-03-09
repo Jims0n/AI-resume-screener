@@ -24,14 +24,14 @@ export default function ProgressBar({
 
     return (
         <div className={`flex items-center gap-2 ${className}`}>
-            <div className={`flex-1 bg-slate-100 rounded-full overflow-hidden ${heights[size]}`}>
+            <div className={`flex-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden ${heights[size]}`}>
                 <div
                     className={`${getColor(value)} ${heights[size]} rounded-full transition-all duration-500 ease-out`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
             {showLabel && (
-                <span className="text-xs font-semibold text-slate-600 w-10 text-right">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 w-10 text-right">
                     {Math.round(value)}
                 </span>
             )}

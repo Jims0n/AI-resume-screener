@@ -1,19 +1,20 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/Toast';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces' });
 
 export const metadata: Metadata = {
-  title: 'AI Resume Screener — Smart Candidate Ranking',
-  description: 'Upload resumes, paste job descriptions, and let AI score and rank candidates automatically.',
+  title: 'shortlyst. — Refined talent discovery.',
+  description: 'AI-powered resume screening, reimagined for the modern recruiter.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans transition-colors duration-200`}>
         <ToastProvider>
           {children}
         </ToastProvider>

@@ -26,78 +26,77 @@ export default function RegisterPage() {
         }
     };
 
+    const inputClasses = "w-full px-4 py-3 rounded-xl border border-shortlyst-border bg-shortlyst-bg text-shortlyst-text focus:border-shortlyst-accent focus:ring-1 focus:ring-shortlyst-accent/20 outline-none transition-all text-sm placeholder:text-shortlyst-text/30";
+
     return (
-        <div className="w-full max-w-md animate-fade-in">
+        <div className="w-full max-w-md animate-fade-in text-shortlyst-text">
             <div className="text-center mb-8">
-                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg mx-auto mb-4 shadow-lg shadow-indigo-200">
-                    AI
-                </div>
-                <h1 className="text-2xl font-bold text-slate-900">Create an account</h1>
-                <p className="text-slate-500 mt-1">Start screening resumes with AI</p>
+                <h1 className="font-serif text-4xl tracking-tight">Create an account</h1>
+                <p className="text-shortlyst-text/50 mt-2 font-light">Join the future of talent discovery.</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 p-8">
+            <div className="bg-shortlyst-bg rounded-3xl border border-shortlyst-border p-10 shadow-2xl">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {error && (
-                        <div className="bg-red-50 text-red-700 text-sm p-3 rounded-lg border border-red-100">
+                        <div className="bg-[#3a2020] text-[#c45c5c] text-sm p-3 rounded-lg border border-[#c45c5c]/20">
                             {error}
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Username</label>
                         <input
                             type="text"
                             value={form.username}
                             onChange={(e) => update('username', e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm"
+                            className={inputClasses}
                             placeholder="Choose a username"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Email</label>
                         <input
                             type="email"
                             value={form.email}
                             onChange={(e) => update('email', e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm"
+                            className={inputClasses}
                             placeholder="you@company.com"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Company</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Company</label>
                         <input
                             type="text"
                             value={form.company}
                             onChange={(e) => update('company', e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm"
+                            className={inputClasses}
                             placeholder="Your company name"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Password</label>
                         <input
                             type="password"
                             value={form.password}
                             onChange={(e) => update('password', e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm"
+                            className={inputClasses}
                             placeholder="Min. 8 characters"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Confirm Password</label>
                         <input
                             type="password"
                             value={form.password_confirm}
                             onChange={(e) => update('password_confirm', e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm"
+                            className={inputClasses}
                             placeholder="Re-enter your password"
                             required
                         />
@@ -109,12 +108,13 @@ export default function RegisterPage() {
                 </form>
             </div>
 
-            <p className="text-center mt-6 text-sm text-slate-500">
+            <p className="text-center mt-6 text-sm text-shortlyst-text/60">
                 Already have an account?{' '}
-                <Link href="/login" className="text-indigo-600 font-semibold hover:text-indigo-700">
+                <Link href="/login" className="text-shortlyst-accent underline decoration-shortlyst-accent/30 hover:decoration-shortlyst-accent transition-colors">
                     Sign in
                 </Link>
             </p>
+
         </div>
     );
 }

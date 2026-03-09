@@ -1,27 +1,30 @@
 import React from 'react';
 
-type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'shortlisted' | 'neutral';
 
 interface BadgeProps {
     children: React.ReactNode;
-    variant?: BadgeVariant;
+    variant?: BadgeVariant | string;
     className?: string;
 }
 
-const variantStyles: Record<BadgeVariant, string> = {
-    success: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    warning: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-    danger: 'bg-red-50 text-red-700 ring-red-600/20',
-    info: 'bg-blue-50 text-blue-700 ring-blue-600/20',
-    neutral: 'bg-slate-50 text-slate-700 ring-slate-600/20',
+const variantStyles: Record<string, string> = {
+    success: 'bg-[#2d3a2d] text-[#7c9a72]',
+    warning: 'bg-[#3a3520] text-[#b8a855]',
+    danger: 'bg-[#3a2020] text-[#c45c5c]',
+    info: 'bg-[#1e2a3a] text-[#6b8ab5]',
+    shortlisted: 'bg-[#2a2820] text-[#d4c8a0]',
+    neutral: 'bg-[#2a2a2a] text-[#8a8578]',
 };
 
-export function getStatusVariant(status: string): BadgeVariant {
-    switch (status) {
+export function getStatusVariant(status: string | undefined | null): BadgeVariant {
+    if (!status) return 'neutral';
+    switch (status.toLowerCase()) {
         case 'scored': case 'active': return 'success';
         case 'pending': case 'draft': return 'warning';
         case 'rejected': case 'closed': return 'danger';
-        case 'processing': case 'shortlisted': return 'info';
+        case 'processing': return 'info';
+        case 'shortlisted': return 'shortlisted';
         default: return 'neutral';
     }
 }
@@ -29,7 +32,7 @@ export function getStatusVariant(status: string): BadgeVariant {
 export default function Badge({ children, variant = 'neutral', className = '' }: BadgeProps) {
     return (
         <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${variantStyles[variant]} ${className}`}
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${variantStyles[variant] || variantStyles.neutral} ${className}`}
         >
             {children}
         </span>
