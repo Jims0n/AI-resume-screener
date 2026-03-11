@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -72,15 +71,22 @@ DATABASE_URL = config('DATABASE_URL', default='')
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
 if DATABASE_URL:
-    try:
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    from urllib.parse import urlparse
+    db_url = urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': db_url.path.lstrip('/'),
+            'USER': db_url.username,
+            'PASSWORD': db_url.password,
+            'HOST': db_url.hostname,
+            'PORT': db_url.port or '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+            'CONN_MAX_AGE': 600,
         }
-    except Exception:
-        # If DATABASE_URL can't be parsed, try without ssl_require
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-        }
+    }
 elif DB_ENGINE == 'sqlite3':
     DATABASES = {
         'default': {
