@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,10 +67,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database — supports both SQLite (local) and PostgreSQL (Docker/prod)
+# Database — supports DATABASE_URL (Supabase/Render), per-variable PostgreSQL, or SQLite
+DATABASE_URL = config('DATABASE_URL', default='')
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
-if DB_ENGINE == 'sqlite3':
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+elif DB_ENGINE == 'sqlite3':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -107,6 +114,7 @@ USE_TZ = True
 # Static files
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (uploaded resumes)
 MEDIA_URL = '/media/'
@@ -251,7 +259,7 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
