@@ -71,16 +71,25 @@ DATABASE_URL = config('DATABASE_URL', default='')
 DB_ENGINE = config('DB_ENGINE', default='sqlite3')
 
 if DATABASE_URL:
-    from urllib.parse import urlparse
-    db_url = urlparse(DATABASE_URL)
+    # Custom parser to handle passwords with special chars like @
+    # Standard urlparse breaks when password contains @
+    from urllib.parse import urlparse, unquote
+    prefix = DATABASE_URL.split('://')[0]        # postgresql
+    rest = DATABASE_URL.split('://')[1]           # user:pass@host:port/db
+    # Split on the LAST @ to separate credentials from host
+    last_at = rest.rfind('@')
+    creds = rest[:last_at]                        # user:pass (may contain @)
+    host_part = rest[last_at + 1:]                # host:port/db
+    user, password = creds.split(':', 1)           # split only on first :
+    parsed_host = urlparse(f'{prefix}://_@{host_part}')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': db_url.path.lstrip('/'),
-            'USER': db_url.username,
-            'PASSWORD': db_url.password,
-            'HOST': db_url.hostname,
-            'PORT': db_url.port or '5432',
+            'NAME': parsed_host.path.lstrip('/'),
+            'USER': unquote(user),
+            'PASSWORD': unquote(password),
+            'HOST': parsed_host.hostname,
+            'PORT': parsed_host.port or 5432,
             'OPTIONS': {
                 'sslmode': 'require',
             },
