@@ -101,7 +101,7 @@ export default function LandingPage() {
             <div className="lg:w-1/3">
               <h2 className="font-serif text-5xl mb-6">The shortlyst methodology.</h2>
               <p className="text-shortlyst-text/60 font-light leading-relaxed">
-                We've distilled the recruitment process into three core pillars. Minimal effort, maximum output.
+                We&apos;ve distilled the recruitment process into three core pillars. Minimal effort, maximum output.
               </p>
             </div>
 
@@ -136,7 +136,7 @@ export default function LandingPage() {
             The future of hiring is quiet.
           </h2>
           <p className="text-2xl text-shortlyst-text/60 font-light leading-relaxed italic mb-12">
-            "We believe the best tech fades into the background, leaving only the clarity you need to make the right choice."
+            &ldquo;We believe the best tech fades into the background, leaving only the clarity you need to make the right choice.&rdquo;
           </p>
           <div className="h-px w-24 bg-shortlyst-border mx-auto mb-12" />
           <p className="uppercase tracking-[0.2em] text-[10px] text-shortlyst-text/40">

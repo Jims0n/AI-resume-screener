@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCandidates } from '@/hooks/useCandidates';
 import { useEmails } from '@/hooks/useEmails';
@@ -34,11 +34,11 @@ export default function CandidateDetailPage() {
         fetchSentEmails(candidateId);
     }, [candidateId, fetchCandidate, fetchSentEmails]);
 
-    const handleStatusChange = async (status: string) => {
+    const handleStatusChange = useCallback(async (status: string) => {
         await updateStatus(candidateId, status);
         fetchCandidate(candidateId);
         addToast(`Candidate ${status}`, 'success');
-    };
+    }, [candidateId, updateStatus, fetchCandidate, addToast]);
 
     const handleReprocess = async () => {
         await reprocess(candidateId);
@@ -52,7 +52,7 @@ export default function CandidateDetailPage() {
         r: () => { if (candidate) handleStatusChange('rejected'); },
         e: () => { if (candidate) setEmailModalOpen(true); },
         n: () => setActiveTab('notes'),
-    }), [candidate]);
+    }), [candidate, handleStatusChange]);
 
     useKeyboardShortcuts(shortcuts, !!candidate);
 
