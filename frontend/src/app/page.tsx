@@ -56,9 +56,6 @@ export default function LandingPage() {
               Start screening
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <button className="px-8 py-4 rounded-full border border-shortlyst-border text-lg font-medium hover:bg-shortlyst-text/5 transition-all">
-              Watch demo
-            </button>
           </div>
         </div>
       </header>
@@ -137,10 +134,6 @@ export default function LandingPage() {
           </h2>
           <p className="text-2xl text-shortlyst-text/60 font-light leading-relaxed italic mb-12">
             &ldquo;We believe the best tech fades into the background, leaving only the clarity you need to make the right choice.&rdquo;
-          </p>
-          <div className="h-px w-24 bg-shortlyst-border mx-auto mb-12" />
-          <p className="uppercase tracking-[0.2em] text-[10px] text-shortlyst-text/40">
-            Founded in 2026. Built for builders.
           </p>
         </div>
       </section>
