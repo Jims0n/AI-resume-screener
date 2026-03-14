@@ -1,21 +1,24 @@
 import logging
 from .models import Notification
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def create_notification(user, notification_type, title, message, data=None):
     """Create a notification for a user."""
     try:
-        return Notification.objects.create(
+        notification = Notification.objects.create(
             user=user,
             type=notification_type,
             title=title,
             message=message,
             data=data or {},
         )
+        info_logger.info(f"Notification created: type='{notification_type}' user={user.username} title='{title}'")
+        return notification
     except Exception as e:
-        logger.error(f"Failed to create notification for {user}: {e}")
+        error_logger.error(f"Failed to create notification for {user}: {e}", exc_info=True)
         return None
 
 
@@ -39,4 +42,8 @@ def notify_org_members(organization, notification_type, title, message, data=Non
 
     if notifications:
         Notification.objects.bulk_create(notifications)
+        info_logger.info(
+            f"Org notifications sent: type='{notification_type}' org={organization.name} "
+            f"recipients={len(notifications)}"
+        )
     return notifications

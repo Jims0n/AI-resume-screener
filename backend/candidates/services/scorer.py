@@ -4,14 +4,15 @@ import anthropic
 from django.conf import settings
 from .utils import parse_json_response
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def score_candidate(parsed_data: dict, job) -> dict:
     """Use Claude API to score a candidate against job requirements."""
     api_key = settings.ANTHROPIC_API_KEY
     if not api_key or api_key == 'your-api-key-here':
-        logger.warning("Anthropic API key not configured. Returning default scores.")
+        info_logger.warning("Anthropic API key not configured. Returning default scores.")
         return _default_scores(job)
 
     # Use custom weights from the job, falling back to defaults
@@ -73,10 +74,16 @@ Candidate Data:
         )
 
         response_text = message.content[0].text
-        return parse_json_response(response_text)
+        result = parse_json_response(response_text)
+        info_logger.info(
+            f"Candidate scored: overall={result.get('overall_score', 0)} "
+            f"skill={result.get('skill_match_score', 0)} exp={result.get('experience_score', 0)} "
+            f"edu={result.get('education_score', 0)} job='{job.title}'"
+        )
+        return result
 
     except Exception as e:
-        logger.error(f"Failed to score candidate: {e}")
+        error_logger.error(f"Failed to score candidate for job='{job.title}': {e}", exc_info=True)
         return _default_scores(job)
 
 

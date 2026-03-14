@@ -27,7 +27,8 @@ from .serializers import (
     MemberUpdateSerializer,
 )
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 User = get_user_model()
 
 
@@ -40,6 +41,7 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        info_logger.info(f"New user registered: {user.username} (org={user.organization})")
 
         refresh = RefreshToken.for_user(user)
         return Response({
@@ -63,11 +65,13 @@ class LoginView(APIView):
         )
 
         if user is None:
+            info_logger.info(f"Failed login attempt for username={serializer.validated_data['username']}")
             return Response(
                 {'detail': 'Invalid credentials.'},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        info_logger.info(f"User logged in: {user.username}")
         refresh = RefreshToken.for_user(user)
         return Response({
             'user': UserSerializer(user).data,
@@ -138,8 +142,10 @@ class MemberUpdateView(APIView):
         serializer = MemberUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        old_role = member.role
         member.role = serializer.validated_data['role']
         member.save(update_fields=['role'])
+        info_logger.info(f"Member role changed: {member.username} {old_role}→{member.role} by {request.user.username}")
 
         return Response(UserListSerializer(member).data)
 
@@ -164,6 +170,7 @@ class MemberUpdateView(APIView):
 
         member.organization = None
         member.save(update_fields=['organization'])
+        info_logger.info(f"Member removed: {member.username} from org={org.name} by {request.user.username}")
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -189,6 +196,7 @@ class InviteCreateView(APIView):
             role=serializer.validated_data['role'],
             invited_by=request.user,
         )
+        info_logger.info(f"Invite created: email={invite.email} role={invite.role} org={org.name} by {request.user.username}")
 
         return Response({
             'detail': 'Invitation created.',
@@ -275,6 +283,7 @@ class JoinOrganizationView(APIView):
 
             invite.status = 'accepted'
             invite.save(update_fields=['status'])
+            info_logger.info(f"Existing user joined org via invite: {existing_user.username} → org={invite.organization.name}")
 
             refresh = RefreshToken.for_user(existing_user)
             return Response({
@@ -297,6 +306,7 @@ class JoinOrganizationView(APIView):
 
         invite.status = 'accepted'
         invite.save(update_fields=['status'])
+        info_logger.info(f"New user joined via invite: {user.username} → org={invite.organization.name} role={invite.role}")
 
         refresh = RefreshToken.for_user(user)
         return Response({

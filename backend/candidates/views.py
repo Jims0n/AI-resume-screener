@@ -24,7 +24,8 @@ from .tasks import process_resume
 from jobs.models import Job
 from accounts.permissions import IsOrganizationMember, CanManageCandidates, check_resume_limit
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 ALLOWED_EXTENSIONS = ('.pdf', '.docx')
 MAX_RESUME_SIZE = getattr(settings, 'MAX_RESUME_SIZE_MB', 10) * 1024 * 1024
@@ -129,11 +130,16 @@ class ResumeUploadView(APIView):
             response_data['skipped'] = skipped
 
         if not candidates:
+            info_logger.info(f"Resume upload: 0 valid files for job={job_id} by {request.user.username} (skipped={len(skipped)})")
             return Response(
                 {'detail': 'No valid files were uploaded.', 'skipped': skipped},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        info_logger.info(
+            f"Resume upload: {len(candidates)} resumes for job={job_id} batch={batch.id} "
+            f"by {request.user.username} (skipped={len(skipped)})"
+        )
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
@@ -242,6 +248,7 @@ class CandidateReprocessView(APIView):
         candidate.status = 'pending'
         candidate.save(update_fields=['status'])
         process_resume.delay(candidate.id)
+        info_logger.info(f"Candidate reprocess triggered: id={pk} by {request.user.username}")
 
         return Response({'detail': 'Reprocessing started.', 'status': 'pending'})
 
@@ -390,7 +397,7 @@ class CandidateCompareView(APIView):
             comparison_summary = ai_result.get('comparison_summary', '')
             recommendation = ai_result.get('recommendation', '')
         except Exception as e:
-            logger.warning(f"AI comparison failed: {e}")
+            error_logger.error(f"AI comparison failed for job={job_id}: {e}", exc_info=True)
             comparison_summary = 'AI comparison unavailable.'
 
         return Response({
@@ -418,6 +425,7 @@ class CandidateExportView(APIView):
         ).prefetch_related('skill_matches')
 
         if export_format == 'csv':
+            info_logger.info(f"CSV export: job={job_id} candidates={candidates.count()} by {request.user.username}")
             return self._export_csv(job, candidates)
 
         return Response(

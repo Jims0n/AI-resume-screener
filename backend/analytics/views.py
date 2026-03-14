@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Avg, Count, Q, Case, When, FloatField
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -6,6 +8,8 @@ from rest_framework.views import APIView
 from candidates.models import Candidate
 from jobs.models import Job
 from accounts.permissions import IsOrganizationMember
+
+info_logger = logging.getLogger('app_info')
 
 
 class JobAnalyticsView(APIView):
@@ -68,6 +72,11 @@ class JobAnalyticsView(APIView):
         top_candidates = scored.order_by('-overall_score')[:5].values(
             'id', 'name', 'overall_score', 'skill_match_score',
             'experience_score', 'education_score', 'status',
+        )
+
+        info_logger.info(
+            f"Analytics viewed: job={job_id} total={candidates.count()} scored={total_scored} "
+            f"by {request.user.username}"
         )
 
         return Response({

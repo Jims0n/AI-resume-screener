@@ -6,13 +6,15 @@ from django.conf import settings
 
 from .utils import parse_json_response
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def compare_candidates(candidates, job) -> dict:
     """Use Claude API to generate a comparison summary of candidates."""
     api_key = settings.ANTHROPIC_API_KEY
     if not api_key or api_key == 'your-api-key-here':
+        info_logger.warning("Anthropic API key not configured. Skipping AI comparison.")
         return {
             'comparison_summary': 'AI comparison unavailable. Please configure the API key.',
             'recommendation': '',
@@ -68,10 +70,13 @@ Candidates:
         )
 
         response_text = message.content[0].text
-        return parse_json_response(response_text)
+        result = parse_json_response(response_text)
+        candidate_names = [c.name for c in candidates]
+        info_logger.info(f"Candidates compared: job='{job.title}' candidates={candidate_names}")
+        return result
 
     except Exception as e:
-        logger.error(f"Failed to compare candidates: {e}")
+        error_logger.error(f"Failed to compare candidates for job='{job.title}': {e}", exc_info=True)
         return {
             'comparison_summary': 'AI comparison failed. Please try again later.',
             'recommendation': '',

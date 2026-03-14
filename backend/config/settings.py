@@ -43,6 +43,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.RequestLoggingMiddleware',
+    'config.middleware.ErrorLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -216,64 +218,9 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 ANTHROPIC_MODEL = config('ANTHROPIC_MODEL', default='claude-3-haiku-20240307')
 
-# Logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'accounts': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'jobs': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'candidates': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'analytics': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'notifications': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'emails': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+# Logging — centralized config with RotatingFileHandlers
+from config.logging_config import get_logging_config
+LOGGING = get_logging_config()
 
 # Production security settings
 if not DEBUG:

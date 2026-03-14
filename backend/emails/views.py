@@ -16,7 +16,8 @@ from accounts.permissions import IsOrganizationMember, CanManageEmails
 from candidates.models import Candidate
 from jobs.models import Job
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 class EmailTemplateListCreateView(generics.ListCreateAPIView):
@@ -33,7 +34,11 @@ class EmailTemplateListCreateView(generics.ListCreateAPIView):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(organization=self.request.user.organization)
+        template = serializer.save(organization=self.request.user.organization)
+        info_logger.info(
+            f"Email template created: id={template.id} type='{template.type}' "
+            f"org={self.request.user.organization.name} by {self.request.user.username}"
+        )
 
 
 class EmailTemplateDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -89,6 +94,11 @@ class SendCandidateEmailView(APIView):
             subject=subject,
             body=body,
             template=template,
+        )
+
+        info_logger.info(
+            f"Email sent to candidate: candidate={pk} email='{candidate.email}' "
+            f"status={sent_email.status} by {request.user.username}"
         )
 
         return Response(
@@ -150,6 +160,11 @@ class BulkEmailView(APIView):
 
         sent_count = sum(1 for r in results if r['status'] == 'sent')
         failed_count = sum(1 for r in results if r['status'] == 'failed')
+
+        info_logger.info(
+            f"Bulk email: job={job_id} sent={sent_count} failed={failed_count} "
+            f"total={len(results)} by {request.user.username}"
+        )
 
         return Response({
             'detail': f'{sent_count} emails sent, {failed_count} failed.',

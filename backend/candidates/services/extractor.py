@@ -3,14 +3,15 @@ import anthropic
 from django.conf import settings
 from .utils import parse_json_response
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def extract_resume_data(resume_text: str) -> dict:
     """Use Claude API to extract structured data from resume text."""
     api_key = settings.ANTHROPIC_API_KEY
     if not api_key or api_key == 'your-api-key-here':
-        logger.warning("Anthropic API key not configured. Returning minimal data.")
+        info_logger.warning("Anthropic API key not configured. Returning minimal data.")
         return {'raw_text': resume_text, 'name': 'Unknown', 'skills': []}
 
     try:
@@ -48,10 +49,15 @@ Resume Text:
         )
 
         response_text = message.content[0].text
-        return parse_json_response(response_text)
+        result = parse_json_response(response_text)
+        info_logger.info(
+            f"Resume data extracted: name='{result.get('name', 'Unknown')}' "
+            f"skills={len(result.get('skills', []))} experience_years={result.get('total_experience_years', 0)}"
+        )
+        return result
 
     except Exception as e:
-        logger.error(f"Failed to extract resume data: {e}")
+        error_logger.error(f"Failed to extract resume data: {e}", exc_info=True)
         return {
             'raw_text': resume_text,
             'name': 'Unknown',

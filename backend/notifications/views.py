@@ -1,9 +1,13 @@
+import logging
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Notification
 from .serializers import NotificationSerializer
+
+info_logger = logging.getLogger('app_info')
 
 
 class NotificationListView(generics.ListAPIView):
@@ -28,6 +32,7 @@ class NotificationMarkReadView(APIView):
 
         notification.is_read = True
         notification.save(update_fields=['is_read'])
+        info_logger.info(f"Notification read: id={pk} user={request.user.username}")
         return Response(NotificationSerializer(notification).data)
 
 
@@ -38,6 +43,7 @@ class NotificationMarkAllReadView(APIView):
         updated = Notification.objects.filter(
             user=request.user, is_read=False
         ).update(is_read=True)
+        info_logger.info(f"All notifications marked read: count={updated} user={request.user.username}")
         return Response({'detail': f'{updated} notifications marked as read.'})
 
 

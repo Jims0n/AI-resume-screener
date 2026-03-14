@@ -1,10 +1,12 @@
 import logging
+import time
 from celery import shared_task
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def _update_batch(candidate, success=True):
@@ -37,11 +39,16 @@ def _update_batch(candidate, success=True):
             batch.completed_at = timezone.now()
             batch.save(update_fields=['status', 'completed_at'])
 
+            info_logger.info(
+                f"Batch completed: id={batch.id} job={batch.job_id} "
+                f"processed={batch.processed_count} failed={batch.failed_count} status={batch.status}"
+            )
+
             # Create notification for batch completion
             _notify_batch_complete(batch)
 
     except ProcessingBatch.DoesNotExist:
-        logger.warning(f"Batch {candidate.batch_id} not found for candidate {candidate.id}")
+        error_logger.error(f"Batch {candidate.batch_id} not found for candidate {candidate.id}")
 
 
 def _notify_batch_complete(batch):
@@ -63,7 +70,7 @@ def _notify_batch_complete(batch):
                 },
             )
     except Exception as e:
-        logger.warning(f"Failed to create batch notification: {e}")
+        error_logger.error(f"Failed to create batch notification for batch={batch.id}: {e}")
 
 
 def _notify_processing_complete(candidate):
@@ -84,7 +91,7 @@ def _notify_processing_complete(candidate):
                 },
             )
     except Exception as e:
-        logger.warning(f"Failed to create processing notification: {e}")
+        error_logger.error(f"Failed to create processing notification for candidate={candidate.id}: {e}")
 
 
 @shared_task(bind=True, max_retries=2, default_retry_delay=30)
@@ -99,11 +106,16 @@ def process_resume(self, candidate_id: int):
     from .services.extractor import extract_resume_data
     from .services.scorer import score_candidate
 
+    task_id = self.request.id or 'sync'
+    start_time = time.monotonic()
+
     try:
         candidate = Candidate.objects.select_related('job', 'job__created_by').get(id=candidate_id)
     except Candidate.DoesNotExist:
-        logger.error(f"Candidate {candidate_id} not found")
+        error_logger.error(f"[TASK {task_id}] Candidate {candidate_id} not found")
         return
+
+    info_logger.info(f"[TASK {task_id}] Starting resume processing for candidate={candidate_id} job={candidate.job_id}")
 
     try:
         # Step 1: Set status to processing
@@ -115,6 +127,7 @@ def process_resume(self, candidate_id: int):
         resume_text = extract_text(file_path)
         candidate.resume_text = resume_text
         candidate.save(update_fields=['resume_text'])
+        info_logger.info(f"[TASK {task_id}] Text extracted: candidate={candidate_id} chars={len(resume_text)}")
 
         # Step 3: Extract structured data from resume text
         parsed_data = extract_resume_data(resume_text)
@@ -123,6 +136,7 @@ def process_resume(self, candidate_id: int):
         candidate.email = parsed_data.get('email', '') or ''
         candidate.phone = parsed_data.get('phone', '') or ''
         candidate.save(update_fields=['parsed_data', 'name', 'email', 'phone'])
+        info_logger.info(f"[TASK {task_id}] Data extracted: candidate={candidate_id} name='{candidate.name}'")
 
         # Step 4: Score candidate against job
         job = candidate.job
@@ -161,14 +175,23 @@ def process_resume(self, candidate_id: int):
         candidate.processed_at = timezone.now()
         candidate.save(update_fields=['status', 'processed_at'])
 
-        logger.info(f"Successfully processed candidate {candidate_id}: score={candidate.overall_score}")
+        duration_ms = (time.monotonic() - start_time) * 1000
+        info_logger.info(
+            f"[TASK {task_id}] Successfully processed candidate={candidate_id}: "
+            f"score={candidate.overall_score} skills={len(skill_matches)} ({duration_ms:.0f}ms)"
+        )
 
         # Update batch and send notifications
         _update_batch(candidate, success=True)
         _notify_processing_complete(candidate)
 
     except Exception as exc:
-        logger.error(f"Failed to process candidate {candidate_id}: {exc}")
+        duration_ms = (time.monotonic() - start_time) * 1000
+        error_logger.error(
+            f"[TASK {task_id}] Failed to process candidate={candidate_id} "
+            f"(attempt {self.request.retries + 1}/{self.max_retries + 1}, {duration_ms:.0f}ms): {exc}",
+            exc_info=True,
+        )
 
         # Retry if retries remain
         if self.request.retries < self.max_retries:

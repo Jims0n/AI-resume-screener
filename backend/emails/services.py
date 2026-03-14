@@ -6,7 +6,8 @@ from django.conf import settings
 
 from .models import SentEmail
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def replace_placeholders(text, candidate, job, organization):
@@ -28,6 +29,7 @@ def send_candidate_email(
 ):
     """Send an email to a candidate and record it."""
     if not candidate.email:
+        info_logger.warning(f"Email skipped: candidate={candidate.id} has no email address")
         return SentEmail.objects.create(
             organization=organization,
             candidate=candidate,
@@ -58,10 +60,11 @@ def send_candidate_email(
         sent_status = 'sent'
         error_msg = ''
     except Exception as e:
-        logger.error(f"Failed to send email to {candidate.email}: {e}")
+        error_logger.error(f"Failed to send email to {candidate.email}: {e}", exc_info=True)
         sent_status = 'failed'
         error_msg = str(e)
 
+    info_logger.info(f"Email delivery: to='{candidate.email}' status={sent_status} candidate={candidate.id}")
     return SentEmail.objects.create(
         organization=organization,
         candidate=candidate,

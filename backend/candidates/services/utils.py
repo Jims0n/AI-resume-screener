@@ -2,7 +2,7 @@ import json
 import re
 import logging
 
-logger = logging.getLogger(__name__)
+error_logger = logging.getLogger('app_error')
 
 
 def parse_json_response(response_text: str) -> dict:
@@ -13,4 +13,5 @@ def parse_json_response(response_text: str) -> dict:
         json_match = re.search(r'\{[\s\S]*\}', response_text)
         if json_match:
             return json.loads(json_match.group())
+        error_logger.error(f"No valid JSON found in AI response: {response_text[:200]}")
         raise ValueError("No valid JSON found in AI response")

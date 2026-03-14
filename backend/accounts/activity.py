@@ -1,7 +1,8 @@
 import logging
 from .models import ActivityLog
 
-logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('app_info')
+error_logger = logging.getLogger('app_error')
 
 
 def log_activity(user, action, target_type, target_id=None, details=None, request=None):
@@ -14,7 +15,7 @@ def log_activity(user, action, target_type, target_id=None, details=None, reques
         ip_address = _get_client_ip(request)
 
     try:
-        return ActivityLog.objects.create(
+        activity = ActivityLog.objects.create(
             organization=user.organization,
             user=user,
             action=action,
@@ -23,8 +24,10 @@ def log_activity(user, action, target_type, target_id=None, details=None, reques
             details=details or {},
             ip_address=ip_address,
         )
+        info_logger.info(f"Activity logged: {action} {target_type} by {user.username} (ip={ip_address})")
+        return activity
     except Exception as e:
-        logger.error(f"Failed to log activity: {e}")
+        error_logger.error(f"Failed to log activity: {action} {target_type} by {user.username}: {e}")
         return None
 
 

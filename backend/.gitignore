@@ -24,5 +24,8 @@ staticfiles/
 # OS
 .DS_Store
 
+# Logs
+logs/
+
 # Testing guides / local notes
 POSTMAN_TESTING_GUIDE.md
