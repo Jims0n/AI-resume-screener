@@ -97,7 +97,7 @@ class SendCandidateEmailView(APIView):
         )
 
         info_logger.info(
-            f"Email sent to candidate: candidate={pk} email='{candidate.email}' "
+            f"Email sent to candidate: candidate={pk} "
             f"status={sent_email.status} by {request.user.username}"
         )
 

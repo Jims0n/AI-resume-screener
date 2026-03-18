@@ -60,11 +60,11 @@ def send_candidate_email(
         sent_status = 'sent'
         error_msg = ''
     except Exception as e:
-        error_logger.error(f"Failed to send email to {candidate.email}: {e}", exc_info=True)
+        error_logger.error(f"Failed to send email: candidate={candidate.id} error={e}", exc_info=True)
         sent_status = 'failed'
         error_msg = str(e)
 
-    info_logger.info(f"Email delivery: to='{candidate.email}' status={sent_status} candidate={candidate.id}")
+    info_logger.info(f"Email delivery: candidate={candidate.id} status={sent_status}")
     return SentEmail.objects.create(
         organization=organization,
         candidate=candidate,

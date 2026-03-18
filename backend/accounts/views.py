@@ -272,6 +272,12 @@ class JoinOrganizationView(APIView):
         # Check if user with this email already exists
         existing_user = User.objects.filter(email__iexact=invite.email).first()
         if existing_user:
+            # Require the authenticated user to match the invite email
+            if request.user.is_authenticated and request.user.email.lower() != invite.email.lower():
+                return Response(
+                    {'detail': 'This invite was sent to a different email address.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
             if existing_user.organization and existing_user.organization != invite.organization:
                 return Response(
                     {'detail': 'This user already belongs to another organization.'},
