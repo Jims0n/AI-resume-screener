@@ -22,6 +22,42 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     return config;
 });
 
+// Mutex for token refresh — prevents race conditions when multiple
+// requests get 401 simultaneously
+let refreshPromise: Promise<string | null> | null = null;
+
+async function doRefresh(): Promise<string | null> {
+    const stored = localStorage.getItem('auth-storage');
+    if (!stored) return null;
+
+    try {
+        const parsed = JSON.parse(stored);
+        const refreshToken = parsed?.state?.refreshToken;
+        if (!refreshToken) return null;
+
+        const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL || '/api'}/auth/refresh/`,
+            { refresh: refreshToken }
+        );
+        const newAccess = res.data.access;
+        const newRefresh = res.data.refresh;
+
+        // Update stored tokens
+        parsed.state.accessToken = newAccess;
+        if (newRefresh) {
+            parsed.state.refreshToken = newRefresh;
+        }
+        localStorage.setItem('auth-storage', JSON.stringify(parsed));
+
+        return newAccess;
+    } catch {
+        // Refresh failed — clear auth and redirect
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/login';
+        return null;
+    }
+}
+
 // Response interceptor: handle 401 → refresh token
 api.interceptors.response.use(
     (res) => res,
@@ -32,28 +68,17 @@ api.interceptors.response.use(
             originalRequest._retry = true;
 
             if (typeof window !== 'undefined') {
-                const stored = localStorage.getItem('auth-storage');
-                if (stored) {
-                    try {
-                        const parsed = JSON.parse(stored);
-                        const refreshToken = parsed?.state?.refreshToken;
+                // Use mutex to ensure only one refresh at a time
+                if (!refreshPromise) {
+                    refreshPromise = doRefresh().finally(() => {
+                        refreshPromise = null;
+                    });
+                }
 
-                        if (refreshToken) {
-                            const res = await axios.post('/api/auth/refresh/', { refresh: refreshToken });
-                            const newAccess = res.data.access;
-
-                            // Update stored token
-                            parsed.state.accessToken = newAccess;
-                            localStorage.setItem('auth-storage', JSON.stringify(parsed));
-
-                            originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-                            return api(originalRequest);
-                        }
-                    } catch {
-                        // Refresh failed — logout
-                        localStorage.removeItem('auth-storage');
-                        window.location.href = '/login';
-                    }
+                const newAccess = await refreshPromise;
+                if (newAccess) {
+                    originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+                    return api(originalRequest);
                 }
             }
         }

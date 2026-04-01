@@ -197,6 +197,9 @@ CORS_ALLOWED_ORIGINS = config(
 )
 CORS_ALLOW_CREDENTIALS = True
 
+# Frontend URL (used in email templates for links)
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
 # Celery
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
