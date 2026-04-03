@@ -16,6 +16,7 @@ from .views import (
     PasswordResetRequestView,
     PasswordResetConfirmView,
 )
+
 from .activity_views import ActivityLogListView
 
 urlpatterns = [
@@ -25,10 +26,9 @@ urlpatterns = [
     path('logout', LogoutView.as_view(), name='logout'),
     path('refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('me', ProfileView.as_view(), name='profile'),
-
-    # Password reset
     path('password-reset', PasswordResetRequestView.as_view(), name='password-reset'),
     path('password-reset/confirm', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+
 
     # Organization
     path('org', OrganizationDetailView.as_view(), name='org-detail'),

@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.contrib.auth import authenticate, get_user_model
 from django.core.cache import cache
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -49,6 +50,13 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         info_logger.info(f"New user registered: {user.username} (org={user.organization})")
 
+        # Send welcome email
+        try:
+            from emails.tasks import send_welcome_email_task
+            send_welcome_email_task.delay(user.email, user.username)
+        except Exception as e:
+            error_logger.error(f"Failed to queue welcome email for {user.email}: {e}")
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'user': UserSerializer(user).data,
@@ -88,6 +96,17 @@ class LoginView(APIView):
             )
 
         info_logger.info(f"User logged in: {user.username}")
+
+        # Send login notification email
+        try:
+            from emails.tasks import send_login_notification_task
+            ip_address = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '')).split(',')[0].strip()
+            user_agent = request.META.get('HTTP_USER_AGENT', 'Unknown')
+            login_time = timezone.now().strftime('%a %b %d, %Y at %I:%M %p UTC')
+            send_login_notification_task.delay(user.email, user.username, ip_address, user_agent, login_time)
+        except Exception as e:
+            error_logger.error(f"Failed to queue login notification for {user.email}: {e}")
+
         refresh = RefreshToken.for_user(user)
         return Response({
             'user': UserSerializer(user).data,
@@ -235,6 +254,19 @@ class InviteCreateView(APIView):
             invited_by=request.user,
         )
         info_logger.info(f"Invite created: email={invite.email} role={invite.role} org={org.name} by {request.user.username}")
+
+        # Send team invite email
+        try:
+            from emails.tasks import send_team_invite_email_task
+            send_team_invite_email_task.delay(
+                invite.email,
+                org.name,
+                str(invite.token),
+                request.user.username,
+                invite.role,
+            )
+        except Exception as e:
+            error_logger.error(f"Failed to queue invite email for {invite.email}: {e}")
 
         return Response({
             'detail': 'Invitation created.',

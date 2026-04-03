@@ -19,7 +19,7 @@ const organizationService = {
 
     getMembers: async (): Promise<OrganizationMember[]> => {
         const { data } = await api.get('/auth/org/members');
-        return data;
+        return Array.isArray(data) ? data : data.results || [];
     },
 
     updateMember: async (memberId: number, role: string): Promise<OrganizationMember> => {
@@ -38,7 +38,7 @@ const organizationService = {
 
     getInvites: async (): Promise<OrganizationInvite[]> => {
         const { data } = await api.get('/auth/org/invites');
-        return data;
+        return Array.isArray(data) ? data : data.results || [];
     },
 
     cancelInvite: async (inviteId: number): Promise<void> => {

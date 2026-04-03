@@ -146,30 +146,29 @@ class BulkEmailView(APIView):
             job=job,
         )
 
-        results = []
+        # Dispatch each email as an async Celery task
+        from .tasks import send_candidate_email_task
+
+        queued_count = 0
         for candidate in candidates:
-            sent_email = send_candidate_email(
-                organization=org,
-                candidate=candidate,
-                sender=request.user,
+            send_candidate_email_task.delay(
+                org_id=org.id,
+                candidate_id=candidate.id,
+                sender_id=request.user.id,
                 subject=subject,
                 body=body,
-                template=template,
+                template_id=template_id,
             )
-            results.append(SentEmailSerializer(sent_email).data)
-
-        sent_count = sum(1 for r in results if r['status'] == 'sent')
-        failed_count = sum(1 for r in results if r['status'] == 'failed')
+            queued_count += 1
 
         info_logger.info(
-            f"Bulk email: job={job_id} sent={sent_count} failed={failed_count} "
-            f"total={len(results)} by {request.user.username}"
+            f"Bulk email queued: job={job_id} count={queued_count} by {request.user.username}"
         )
 
         return Response({
-            'detail': f'{sent_count} emails sent, {failed_count} failed.',
-            'results': results,
-        }, status=status.HTTP_201_CREATED)
+            'detail': f'{queued_count} emails queued for delivery.',
+            'queued_count': queued_count,
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class SentEmailListView(generics.ListAPIView):

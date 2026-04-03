@@ -4,7 +4,7 @@ import type { CandidateNote } from '@/types';
 const noteService = {
     getNotes: async (candidateId: number): Promise<CandidateNote[]> => {
         const { data } = await api.get(`/candidates/${candidateId}/notes`);
-        return data;
+        return Array.isArray(data) ? data : data.results || [];
     },
 
     createNote: async (candidateId: number, content: string): Promise<CandidateNote> => {
