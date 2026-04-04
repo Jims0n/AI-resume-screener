@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Candidate, CandidateListItem } from '@/types';
 import { candidateService } from '@/lib/candidateService';
+import { extractApiError } from '@/lib/apiErrors';
 
 export function useCandidates() {
     const [candidates, setCandidates] = useState<CandidateListItem[]>([]);
@@ -17,8 +18,8 @@ export function useCandidates() {
             const data = await candidateService.getCandidates(jobId, params);
             setCandidates(data.results);
             return data;
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load candidates');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to load candidates'));
         } finally {
             setLoading(false);
         }
@@ -31,8 +32,8 @@ export function useCandidates() {
             const data = await candidateService.getCandidate(id);
             setCurrentCandidate(data);
             return data;
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load candidate');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to load candidate'));
         } finally {
             setLoading(false);
         }
@@ -44,8 +45,8 @@ export function useCandidates() {
         try {
             const data = await candidateService.uploadResumes(jobId, files);
             return data;
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to upload resumes');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to upload resumes'));
             throw err;
         } finally {
             setLoading(false);
@@ -56,8 +57,8 @@ export function useCandidates() {
         try {
             await candidateService.updateCandidateStatus(id, status);
             setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: status as CandidateListItem['status'] } : c)));
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to update status');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to update status'));
         }
     }, []);
 
@@ -65,8 +66,8 @@ export function useCandidates() {
         try {
             await candidateService.reprocessCandidate(id);
             setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'pending' as const } : c)));
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to reprocess');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to reprocess'));
         }
     }, []);
 
@@ -82,8 +83,8 @@ export function useCandidates() {
             a.download = filename;
             a.click();
             window.URL.revokeObjectURL(url);
-        } catch (err: any) {
-            setError(err.message || 'Failed to export');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to export'));
             throw err;
         }
     }, []);

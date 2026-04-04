@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { Job } from '@/types';
 import { jobService } from '@/lib/jobService';
+import { extractApiError } from '@/lib/apiErrors';
 
 interface JobState {
     jobs: Job[];
@@ -26,8 +27,8 @@ export const useJobStore = create<JobState>((set) => ({
         try {
             const data = await jobService.getJobs();
             set({ jobs: data.results, loading: false });
-        } catch (err: any) {
-            set({ error: err.response?.data?.detail || 'Failed to load jobs', loading: false });
+        } catch (err: unknown) {
+            set({ error: extractApiError(err, 'Failed to load jobs'), loading: false });
         }
     },
 
@@ -37,8 +38,8 @@ export const useJobStore = create<JobState>((set) => ({
             const job = await jobService.createJob(payload);
             set((state) => ({ jobs: [job, ...state.jobs], loading: false }));
             return job;
-        } catch (err: any) {
-            set({ error: err.response?.data?.detail || 'Failed to create job', loading: false });
+        } catch (err: unknown) {
+            set({ error: extractApiError(err, 'Failed to create job'), loading: false });
             throw err;
         }
     },
@@ -48,8 +49,8 @@ export const useJobStore = create<JobState>((set) => ({
         try {
             const job = await jobService.getJob(id);
             set({ currentJob: job, loading: false });
-        } catch (err: any) {
-            set({ error: err.response?.data?.detail || 'Failed to load job', loading: false });
+        } catch (err: unknown) {
+            set({ error: extractApiError(err, 'Failed to load job'), loading: false });
         }
     },
 

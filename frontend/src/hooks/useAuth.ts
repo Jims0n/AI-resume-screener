@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/lib/authService';
+import { extractApiError } from '@/lib/apiErrors';
 import { LoginPayload, RegisterPayload } from '@/types';
 
 export function useAuth() {
@@ -19,9 +20,8 @@ export function useAuth() {
             const data = await authService.login(payload);
             setAuth(data.user, data.access, data.refresh);
             router.push('/dashboard');
-        } catch (err: any) {
-            const msg = err.response?.data?.detail || 'Login failed';
-            setError(msg);
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Login failed'));
             throw err;
         } finally {
             setLoading(false);
@@ -35,16 +35,8 @@ export function useAuth() {
             const data = await authService.register(payload);
             setAuth(data.user, data.access, data.refresh);
             router.push('/dashboard');
-        } catch (err: any) {
-            const d = err.response?.data;
-            const msg = d?.detail
-                || d?.email?.[0]
-                || d?.username?.[0]
-                || d?.password?.[0]
-                || d?.password_confirm?.[0]
-                || d?.non_field_errors?.[0]
-                || 'Registration failed';
-            setError(msg);
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Registration failed'));
             throw err;
         } finally {
             setLoading(false);

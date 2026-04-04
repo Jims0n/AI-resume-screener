@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import api from '@/lib/api';
+import { extractApiError } from '@/lib/apiErrors';
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
@@ -59,9 +60,8 @@ function ResetPasswordForm() {
         try {
             await api.post('/auth/password-reset/confirm', { token, password });
             setSuccess(true);
-        } catch (err: any) {
-            const msg = err.response?.data?.detail || 'Failed to reset password. The link may have expired.';
-            setError(msg);
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to reset password. The link may have expired.'));
         } finally {
             setLoading(false);
         }

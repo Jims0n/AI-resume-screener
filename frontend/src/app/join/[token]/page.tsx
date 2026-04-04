@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
+import { extractApiError } from '@/lib/apiErrors';
 import Button from '@/components/ui/Button';
 
 interface InviteDetails {
@@ -43,10 +44,8 @@ export default function JoinPage() {
             try {
                 const res = await axios.get(`${API_URL}/auth/org/join/${token}`);
                 setInvite(res.data);
-            } catch (err: any) {
-                const msg =
-                    err.response?.data?.detail ||
-                    'This invite link is invalid or has expired.';
+            } catch (err: unknown) {
+                const msg = extractApiError(err, 'This invite link is invalid or has expired.');
                 setPageError(msg);
             } finally {
                 setLoading(false);
@@ -73,8 +72,8 @@ export default function JoinPage() {
             );
             setAuth(res.data.user, res.data.access, res.data.refresh);
             router.push('/dashboard');
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to join organization.');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to join organization.'));
         } finally {
             setSubmitting(false);
         }
@@ -98,17 +97,12 @@ export default function JoinPage() {
             const res = await axios.post(`${API_URL}/auth/org/join/${token}`, {
                 username: form.username,
                 password: form.password,
+                password_confirm: form.password_confirm,
             });
             setAuth(res.data.user, res.data.access, res.data.refresh);
             router.push('/dashboard');
-        } catch (err: any) {
-            const d = err.response?.data;
-            const msg =
-                d?.detail ||
-                d?.username?.[0] ||
-                d?.password?.[0] ||
-                'Failed to create account.';
-            setError(msg);
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to create account.'));
         } finally {
             setSubmitting(false);
         }
