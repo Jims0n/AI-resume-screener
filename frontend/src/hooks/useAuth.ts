@@ -51,7 +51,15 @@ export function useAuth() {
         }
     }, [setAuth, router]);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
+        const refreshToken = useAuthStore.getState().refreshToken;
+        try {
+            if (refreshToken) {
+                await authService.logout(refreshToken);
+            }
+        } catch {
+            // Proceed with local logout even if server call fails
+        }
         clearAuth();
         window.location.href = '/login';
     }, [clearAuth]);

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="margin:0 0 20px;font-size:24px;font-weight:700;color:#e8e4d9;">You're invited! 🤝</h1>
+
+<p style="margin:0 0 16px;color:#e8e4d9;line-height:1.6;">
+    Hi there,
+</p>
+
+<p style="margin:0 0 16px;color:#8a8578;line-height:1.6;">
+    <strong style="color:#e8e4d9;">{{ inviter_name }}</strong> has invited you to join
+    <strong style="color:#e8e4d9;">{{ organization_name }}</strong> on Shortlyst as a <strong style="color:#e8e4d9;">{{ role }}</strong>.
+</p>
+
+<p style="margin:0 0 24px;color:#8a8578;line-height:1.6;">
+    Shortlyst helps teams screen resumes with AI, collaborate on hiring, and find the best candidates faster.
+</p>
+
+<table border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td style="background-color:#e8e4d9;border-radius:8px;padding:12px 32px;">
+            <a href="{{ frontend_url }}/join/{{ invite_token }}" style="color:#1c1c1c;text-decoration:none;font-weight:600;font-size:15px;">Accept Invitation</a>
+        </td>
+    </tr>
+</table>
+
+<p style="margin:24px 0 0;color:#6b6560;font-size:13px;line-height:1.5;">
+    This invitation will expire in 7 days. If you didn't expect this email, you can safely ignore it.
+</p>
+{% endblock %}

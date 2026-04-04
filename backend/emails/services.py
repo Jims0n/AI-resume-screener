@@ -1,10 +1,9 @@
 import logging
-import re
 
-from django.core.mail import send_mail
 from django.conf import settings
 
 from .models import SentEmail
+from .resend_service import send_html_email
 
 info_logger = logging.getLogger('app_info')
 error_logger = logging.getLogger('app_error')
@@ -27,7 +26,7 @@ def send_candidate_email(
     organization, candidate, sender, subject, body,
     template=None,
 ):
-    """Send an email to a candidate and record it."""
+    """Send an email to a candidate via Resend and record it."""
     if not candidate.email:
         info_logger.warning(f"Email skipped: candidate={candidate.id} has no email address")
         return SentEmail.objects.create(
@@ -49,13 +48,16 @@ def send_candidate_email(
     rendered_body = replace_placeholders(body, candidate, job, organization)
 
     try:
-        from_email = settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else None
-        send_mail(
+        send_html_email(
+            to=candidate.email,
             subject=rendered_subject,
-            message=rendered_body,
-            from_email=from_email,
-            recipient_list=[candidate.email],
-            fail_silently=False,
+            template_name='candidate_email.html',
+            context={
+                'email_subject': rendered_subject,
+                'email_body': rendered_body,
+                'greeting_tag': '',
+                'closing_tag': organization.name,
+            },
         )
         sent_status = 'sent'
         error_msg = ''

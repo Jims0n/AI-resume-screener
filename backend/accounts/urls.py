@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView,
     LoginView,
+    LogoutView,
     ProfileView,
     OrganizationDetailView,
     OrganizationMembersView,
@@ -12,15 +13,22 @@ from .views import (
     InviteListView,
     InviteCancelView,
     JoinOrganizationView,
+    PasswordResetRequestView,
+    PasswordResetConfirmView,
 )
+
 from .activity_views import ActivityLogListView
 
 urlpatterns = [
     # Auth
     path('register', RegisterView.as_view(), name='register'),
     path('login', LoginView.as_view(), name='login'),
+    path('logout', LogoutView.as_view(), name='logout'),
     path('refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('me', ProfileView.as_view(), name='profile'),
+    path('password-reset', PasswordResetRequestView.as_view(), name='password-reset'),
+    path('password-reset/confirm', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+
 
     # Organization
     path('org', OrganizationDetailView.as_view(), name='org-detail'),

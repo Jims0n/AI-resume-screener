@@ -17,8 +17,21 @@ export default function RegisterPage() {
 
     const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
+    const [validationError, setValidationError] = useState<string | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setValidationError(null);
+
+        if (form.password.length < 8) {
+            setValidationError('Password must be at least 8 characters.');
+            return;
+        }
+        if (form.password !== form.password_confirm) {
+            setValidationError('Passwords do not match.');
+            return;
+        }
+
         try {
             await register(form);
         } catch {
@@ -37,9 +50,9 @@ export default function RegisterPage() {
 
             <div className="bg-shortlyst-bg rounded-3xl border border-shortlyst-border p-10 shadow-2xl">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && (
+                    {(error || validationError) && (
                         <div className="bg-[#3a2020] text-[#c45c5c] text-sm p-3 rounded-lg border border-[#c45c5c]/20">
-                            {error}
+                            {validationError || error}
                         </div>
                     )}
 

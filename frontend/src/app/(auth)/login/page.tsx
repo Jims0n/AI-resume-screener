@@ -6,14 +6,14 @@ import { useAuth } from '@/hooks/useAuth';
 import Button from '@/components/ui/Button';
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { login, loading, error } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login({ username, password });
+            await login({ email, password });
         } catch {
             // Error is handled in the hook
         }
@@ -37,13 +37,13 @@ export default function LoginPage() {
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Username</label>
+                        <label className="block text-sm font-medium text-shortlyst-text/80 mb-1.5">Email</label>
                         <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className={inputClasses}
-                            placeholder="Enter your username"
+                            placeholder="you@company.com"
                             required
                         />
                     </div>
@@ -63,6 +63,12 @@ export default function LoginPage() {
                     <Button type="submit" loading={loading} className="w-full" size="lg">
                         Sign In
                     </Button>
+
+                    <div className="text-center">
+                        <Link href="/forgot-password" className="text-sm text-shortlyst-text/50 hover:text-shortlyst-accent transition-colors">
+                            Forgot your password?
+                        </Link>
+                    </div>
                 </form>
             </div>
 

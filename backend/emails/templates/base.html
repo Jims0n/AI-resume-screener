@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ email_title }}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 15px; color: #e8e4d9; background-color: #141414; }
+        a { color: #e8e4d9; text-decoration: underline; }
+    </style>
+</head>
+<body style="margin:0;padding:0;background-color:#141414;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#141414;">
+<tr><td align="center" style="padding:40px 20px;">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background-color:#1c1c1c;border-radius:12px;overflow:hidden;">
+
+    <!-- Header -->
+    <tr>
+        <td style="padding:32px 40px 24px;border-bottom:1px solid #2a2a2a;">
+            <span style="font-size:22px;font-weight:700;color:#e8e4d9;letter-spacing:-0.3px;">Shortlyst</span>
+        </td>
+    </tr>
+
+    <!-- Body -->
+    <tr>
+        <td style="padding:32px 40px;">
+            {% block content %}{% endblock %}
+        </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td style="padding:24px 40px 32px;border-top:1px solid #2a2a2a;">
+            <p style="margin:0;font-size:12px;color:#6b6560;line-height:1.5;">
+                &copy; 2026 Shortlyst. All rights reserved.<br>
+                You are receiving this email because you have an account on Shortlyst.
+            </p>
+        </td>
+    </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
