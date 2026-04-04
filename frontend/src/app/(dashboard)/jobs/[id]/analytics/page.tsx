@@ -4,6 +4,7 @@ export const runtime = 'edge';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { candidateService } from '@/lib/candidateService';
+import { extractApiError } from '@/lib/apiErrors';
 import { AnalyticsData } from '@/types';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -30,8 +31,8 @@ export default function AnalyticsPage() {
         candidateService.getAnalytics(jobId).then((d) => {
             setData(d);
             setLoading(false);
-        }).catch((err) => {
-            setError(err.response?.data?.detail || 'Failed to load analytics');
+        }).catch((err: unknown) => {
+            setError(extractApiError(err, 'Failed to load analytics'));
             setLoading(false);
         });
     }, [jobId]);

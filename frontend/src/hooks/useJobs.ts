@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Job, JobCreate } from '@/types';
 import { jobService } from '@/lib/jobService';
+import { extractApiError } from '@/lib/apiErrors';
 
 export function useJobs() {
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -16,8 +17,8 @@ export function useJobs() {
         try {
             const data = await jobService.getJobs();
             setJobs(data.results);
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load jobs');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to load jobs'));
         } finally {
             setLoading(false);
         }
@@ -30,8 +31,8 @@ export function useJobs() {
             const data = await jobService.getJob(id);
             setCurrentJob(data);
             return data;
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to load job');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to load job'));
         } finally {
             setLoading(false);
         }
@@ -44,8 +45,8 @@ export function useJobs() {
             const job = await jobService.createJob(payload);
             setJobs((prev) => [job, ...prev]);
             return job;
-        } catch (err: any) {
-            setError(err.response?.data?.detail || 'Failed to create job');
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to create job'));
             throw err;
         } finally {
             setLoading(false);
