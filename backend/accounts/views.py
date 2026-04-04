@@ -42,6 +42,7 @@ User = get_user_model()
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
@@ -66,6 +67,7 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
     throttle_scope = 'login'
 
@@ -396,6 +398,7 @@ class JoinOrganizationView(APIView):
 
 class PasswordResetRequestView(APIView):
     """Request a password reset email."""
+    authentication_classes = []
     permission_classes = [AllowAny]
     throttle_scope = 'login'
 
@@ -430,6 +433,7 @@ class PasswordResetRequestView(APIView):
 
 class PasswordResetConfirmView(APIView):
     """Confirm password reset with token and new password."""
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
