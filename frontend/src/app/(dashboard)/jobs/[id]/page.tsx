@@ -18,7 +18,7 @@ export default function JobDetailPage() {
     const router = useRouter();
     const jobId = Number(params.id);
     const { currentJob, fetchJob, loading: jobLoading } = useJobs();
-    const { candidates, fetchCandidates, updateStatus, exportCSV, loading: candLoading } = useCandidates();
+    const { candidates, fetchCandidates, updateStatus, bulkDeleteCandidates, exportCSV, loading: candLoading } = useCandidates();
     const { addToast } = useToast();
     const [sortKey, setSortKey] = useState<string>('-overall_score');
     const [statusFilter, setStatusFilter] = useState<string>('');
@@ -68,6 +68,20 @@ export default function JobDetailPage() {
             addToast('CSV exported!', 'success');
         } catch {
             addToast('Failed to export CSV', 'error');
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(selected);
+        const confirmMsg = `Are you sure you want to delete ${ids.length} candidate(s)? This cannot be undone.`;
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            await bulkDeleteCandidates(jobId, ids);
+            setSelected(new Set());
+            addToast(`${ids.length} candidate(s) deleted`, 'success');
+        } catch {
+            addToast('Failed to delete candidates', 'error');
         }
     };
 
@@ -151,6 +165,7 @@ export default function JobDetailPage() {
                     <Button size="sm" onClick={() => bulkAction('shortlisted')}>Shortlist</Button>
                     <Button size="sm" variant="danger" onClick={() => bulkAction('rejected')}>Reject</Button>
                     <Button size="sm" variant="secondary" onClick={handleCompare}>Compare</Button>
+                    <Button size="sm" variant="danger" onClick={handleBulkDelete}>Delete</Button>
                     <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
                 </div>
             )}

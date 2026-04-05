@@ -71,6 +71,27 @@ export function useCandidates() {
         }
     }, []);
 
+    const deleteCandidate = useCallback(async (id: number) => {
+        try {
+            await candidateService.deleteCandidate(id);
+            setCandidates((prev) => prev.filter((c) => c.id !== id));
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to delete candidate'));
+            throw err;
+        }
+    }, []);
+
+    const bulkDeleteCandidates = useCallback(async (jobId: number, candidateIds: number[]) => {
+        try {
+            const result = await candidateService.bulkDeleteCandidates(jobId, candidateIds);
+            setCandidates((prev) => prev.filter((c) => !candidateIds.includes(c.id)));
+            return result;
+        } catch (err: unknown) {
+            setError(extractApiError(err, 'Failed to delete candidates'));
+            throw err;
+        }
+    }, []);
+
     const exportCSV = useCallback(async (jobId: number) => {
         try {
             const { blob, filename } = await candidateService.exportCandidates(jobId);
@@ -92,6 +113,7 @@ export function useCandidates() {
     return {
         candidates, currentCandidate, loading, error,
         fetchCandidates, fetchCandidate, uploadResumes,
-        updateStatus, reprocess, exportCSV, setCandidates,
+        updateStatus, reprocess, deleteCandidate, bulkDeleteCandidates,
+        exportCSV, setCandidates,
     };
 }
