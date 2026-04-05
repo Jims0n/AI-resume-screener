@@ -53,29 +53,31 @@ export default function OrganizationSettingsPage() {
         );
     }
 
+    const inputClasses = "w-full px-3 py-2 rounded-lg border border-[#2a2a2a] bg-[#1c1c1c] text-[#e8e4d9] focus:outline-none focus:ring-1 focus:ring-[#e8e4d9]/30 font-light placeholder-[#6b6560]";
+
     return (
         <div className="max-w-2xl space-y-6">
             <Card>
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Organization Details</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Manage your organization settings.</p>
+                        <h2 className="font-serif tracking-tight text-xl text-[#e8e4d9] mb-1">Organization Details</h2>
+                        <p className="text-sm text-[#8a8578] font-light">Manage your organization settings.</p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Organization Name</label>
+                        <label className="block text-sm font-medium text-[#8a8578] mb-1">Organization Name</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={inputClasses}
                         />
                     </div>
 
                     {org && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Slug</label>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg">{org.slug}</p>
+                            <label className="block text-sm font-medium text-[#8a8578] mb-1">Slug</label>
+                            <p className="text-sm text-[#8a8578] bg-[#1a1a1a] px-3 py-2 rounded-lg border border-[#2a2a2a]">{org.slug}</p>
                         </div>
                     )}
 
@@ -87,19 +89,19 @@ export default function OrganizationSettingsPage() {
 
             {/* Plan Limits */}
             {org && (
-                <Card header={<div className="px-6 py-4"><h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Current Plan Limits</h3></div>}>
-                    <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{org.active_job_count}/{org.max_jobs}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Active Jobs</p>
+                <Card header={<h3 className="font-serif text-lg text-[#e8e4d9]">Current Plan Limits</h3>}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 text-center border border-[#2a2a2a]">
+                            <p className="text-2xl font-serif text-[#e8e4d9]">{org.active_job_count}/{org.max_jobs}</p>
+                            <p className="text-xs text-[#8a8578] mt-1">Active Jobs</p>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{org.max_resumes_per_job}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Resumes/Job</p>
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 text-center border border-[#2a2a2a]">
+                            <p className="text-2xl font-serif text-[#e8e4d9]">{org.max_resumes_per_job}</p>
+                            <p className="text-xs text-[#8a8578] mt-1">Resumes/Job</p>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 text-center">
-                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{org.member_count}/{org.max_users}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Team Members</p>
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 text-center border border-[#2a2a2a]">
+                            <p className="text-2xl font-serif text-[#e8e4d9]">{org.member_count}/{org.max_users}</p>
+                            <p className="text-xs text-[#8a8578] mt-1">Team Members</p>
                         </div>
                     </div>
                 </Card>

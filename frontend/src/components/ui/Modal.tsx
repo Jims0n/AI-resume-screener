@@ -35,12 +35,12 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-            <div className={`relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl ${sizeStyles[size]} w-full mx-4 animate-modal-in`}>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+            <div className={`relative bg-[#242424] rounded-xl shadow-2xl border border-[#2a2a2a] ${sizeStyles[size]} w-full mx-4 animate-modal-in`}>
                 {title && (
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xl">&times;</button>
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a2a]">
+                        <h3 className="text-lg font-serif text-[#e8e4d9]">{title}</h3>
+                        <button onClick={onClose} className="text-[#6b6560] hover:text-[#e8e4d9] transition-colors text-xl">&times;</button>
                     </div>
                 )}
                 <div className="p-6">{children}</div>

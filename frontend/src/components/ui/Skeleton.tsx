@@ -15,7 +15,7 @@ export default function Skeleton({
     height,
     lines = 1,
 }: SkeletonProps) {
-    const baseClasses = 'animate-skeleton bg-slate-200 dark:bg-slate-700 rounded';
+    const baseClasses = 'animate-skeleton bg-[#242424] rounded';
 
     if (variant === 'circle') {
         return (

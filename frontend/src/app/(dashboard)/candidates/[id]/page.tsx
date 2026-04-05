@@ -195,14 +195,14 @@ export default function CandidateDetailPage() {
                     </Card>
 
                     {/* Radar Chart */}
-                    <Card header={<h3 className="font-semibold text-slate-700 dark:text-slate-300">Score Breakdown</h3>}>
+                    <Card header={<h3 className="font-serif text-lg text-sh-text">Score Breakdown</h3>}>
                         <div className="h-56">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart data={radarData}>
-                                    <PolarGrid stroke="#94a3b8" />
-                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                                    <Radar name="Score" dataKey="score" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.3} />
+                                    <PolarGrid stroke="#2a2a2a" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#6b6560' }} />
+                                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b6560' }} />
+                                    <Radar name="Score" dataKey="score" stroke="#e8e4d9" fill="#e8e4d9" fillOpacity={0.2} />
                                 </RadarChart>
                             </ResponsiveContainer>
                         </div>
@@ -213,7 +213,7 @@ export default function CandidateDetailPage() {
                                 { label: 'Education', value: candidate.education_score },
                             ].map(({ label, value }) => (
                                 <div key={label}>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</p>
+                                    <p className="text-xs text-[#8a8578] mb-1">{label}</p>
                                     <ProgressBar value={value ?? 0} size="md" />
                                 </div>
                             ))}

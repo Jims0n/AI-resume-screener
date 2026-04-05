@@ -44,6 +44,7 @@ export default function RegisterPage() {
     return (
         <div className="w-full max-w-md animate-fade-in text-shortlyst-text">
             <div className="text-center mb-8">
+                <p className="font-serif text-2xl tracking-tight text-shortlyst-text/40 mb-6">shortlyst.</p>
                 <h1 className="font-serif text-4xl tracking-tight">Create an account</h1>
                 <p className="text-shortlyst-text/50 mt-2 font-light">Join the future of talent discovery.</p>
             </div>

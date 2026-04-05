@@ -16,8 +16,8 @@ import {
     Cell, PieChart, Pie, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
 } from 'recharts';
 
-const COLORS = ['#ef4444', '#f59e0b', '#eab308', '#22c55e', '#10b981'];
-const PIE_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#c45c5c', '#b8a855', '#d4c8a0', '#7c9a72', '#6b8ab5'];
+const PIE_COLORS = ['#e8e4d9', '#7c9a72', '#b8a855', '#c45c5c', '#6b8ab5'];
 
 export default function AnalyticsPage() {
     const params = useParams();
@@ -73,7 +73,7 @@ export default function AnalyticsPage() {
 
     if (!data) {
         return (
-            <div className="text-center py-20 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-20 text-[#8a8578]">
                 No analytics available
             </div>
         );
@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
                 <div>
                     <button
                         onClick={() => router.push(`/jobs/${jobId}`)}
-                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mb-2"
+                        className="text-sm text-[#8a8578] hover:text-[#e8e4d9] mb-2 transition-colors cursor-pointer"
                     >
                         ← Back to job
                     </button>
@@ -150,15 +150,16 @@ export default function AnalyticsPage() {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.score_distribution}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.3} />
-                                <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b6560' }} />
+                                <YAxis tick={{ fontSize: 12, fill: '#6b6560' }} />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: 'var(--tooltip-bg, #fff)',
-                                        border: '1px solid #e2e8f0',
+                                        backgroundColor: '#242424',
+                                        border: '1px solid #2a2a2a',
                                         borderRadius: '8px',
                                         fontSize: '12px',
+                                        color: '#e8e4d9',
                                     }}
                                 />
                                 <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={800}>
@@ -176,14 +177,14 @@ export default function AnalyticsPage() {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart data={radarData}>
-                                <PolarGrid stroke="#94a3b8" opacity={0.3} />
-                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
+                                <PolarGrid stroke="#2a2a2a" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#6b6560' }} />
+                                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: '#6b6560' }} />
                                 <Radar
                                     name="Average"
                                     dataKey="score"
-                                    stroke="#6366f1"
-                                    fill="#6366f1"
+                                    stroke="#e8e4d9"
+                                    fill="#e8e4d9"
                                     fillOpacity={0.3}
                                     animationDuration={800}
                                 />
@@ -205,7 +206,7 @@ export default function AnalyticsPage() {
                             </div>
                         ))}
                         {data.skill_gap.length === 0 && (
-                            <p className="text-sm text-slate-400 dark:text-slate-500">No skills to analyze</p>
+                            <p className="text-sm text-[#8a8578]">No skills to analyze</p>
                         )}
                     </div>
                 </Card>
@@ -232,10 +233,11 @@ export default function AnalyticsPage() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: 'var(--tooltip-bg, #fff)',
-                                                border: '1px solid #e2e8f0',
+                                                backgroundColor: '#242424',
+                                                border: '1px solid #2a2a2a',
                                                 borderRadius: '8px',
                                                 fontSize: '12px',
+                                                color: '#e8e4d9',
                                             }}
                                         />
                                     </PieChart>
@@ -255,7 +257,7 @@ export default function AnalyticsPage() {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">
+                        <p className="text-sm text-[#8a8578] text-center py-8">
                             No pipeline data yet
                         </p>
                     )}
@@ -282,7 +284,7 @@ export default function AnalyticsPage() {
                                     onClick={() => router.push(`/candidates/${c.id}`)}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <span className={`text-sm font-bold w-6 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-400 dark:text-slate-500'
+                                        <span className={`text-sm font-bold w-6 ${i === 0 ? 'text-[#d4c8a0]' : i === 1 ? 'text-[#8a8578]' : i === 2 ? 'text-[#b8a855]' : 'text-[#6b6560]'
                                             }`}>
                                             {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                                         </span>

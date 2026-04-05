@@ -24,6 +24,8 @@ const PLACEHOLDERS = [
     { name: '{{company_name}}', desc: 'Your organization name' },
 ];
 
+const inputClasses = "w-full px-3 py-2 rounded-lg border border-[#2a2a2a] bg-[#1c1c1c] text-[#e8e4d9] focus:outline-none focus:ring-1 focus:ring-[#e8e4d9]/30 font-light placeholder-[#6b6560]";
+
 export default function EmailTemplatesSettingsPage() {
     const { addToast } = useToast();
     const [templates, setTemplates] = useState<EmailTemplate[]>([]);
@@ -101,22 +103,22 @@ export default function EmailTemplatesSettingsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Email Templates</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Create reusable email templates for candidate communication.</p>
+                    <h2 className="font-serif tracking-tight text-xl text-[#e8e4d9]">Email Templates</h2>
+                    <p className="text-sm text-[#8a8578] font-light">Create reusable email templates for candidate communication.</p>
                 </div>
                 <Button onClick={openNewModal}>New Template</Button>
             </div>
 
             {/* Placeholder reference */}
             <Card noPadding>
-                <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Available Placeholders</p>
+                <div className="px-6 py-3 bg-[#1a1a1a] border-b border-[#2a2a2a]">
+                    <p className="text-xs font-medium text-[#6b6560] uppercase tracking-wider">Available Placeholders</p>
                 </div>
                 <div className="px-6 py-3 flex flex-wrap gap-4">
                     {PLACEHOLDERS.map((p) => (
                         <div key={p.name} className="text-sm">
-                            <code className="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-1.5 py-0.5 rounded text-xs">{p.name}</code>
-                            <span className="text-slate-500 dark:text-slate-400 ml-1.5">{p.desc}</span>
+                            <code className="text-[#e8e4d9] bg-[#e8e4d9]/10 px-1.5 py-0.5 rounded text-xs">{p.name}</code>
+                            <span className="text-[#8a8578] ml-1.5">{p.desc}</span>
                         </div>
                     ))}
                 </div>
@@ -138,11 +140,11 @@ export default function EmailTemplatesSettingsPage() {
                             <div className="flex items-center justify-between px-6 py-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{template.name}</h3>
+                                        <h3 className="text-sm font-semibold text-[#e8e4d9] truncate">{template.name}</h3>
                                         <Badge variant="info">{template.type.replace('_', ' ')}</Badge>
                                         {template.is_default && <Badge variant="neutral">Default</Badge>}
                                     </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Subject: {template.subject}</p>
+                                    <p className="text-xs text-[#8a8578] truncate">Subject: {template.subject}</p>
                                 </div>
                                 <div className="flex items-center gap-2 ml-4">
                                     <Button variant="secondary" size="sm" onClick={() => openEditModal(template)}>Edit</Button>
@@ -158,22 +160,22 @@ export default function EmailTemplatesSettingsPage() {
             <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingTemplate ? 'Edit Template' : 'New Template'} size="lg">
                 <form onSubmit={handleSave} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Template Name</label>
+                        <label className="block text-sm font-medium text-[#8a8578] mb-1">Template Name</label>
                         <input
                             type="text"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                             required
                             placeholder="e.g. Interview Invitation"
-                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={inputClasses}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                        <label className="block text-sm font-medium text-[#8a8578] mb-1">Type</label>
                         <select
                             value={form.type}
                             onChange={(e) => setForm({ ...form, type: e.target.value as EmailTemplateType })}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={inputClasses}
                         >
                             {TYPE_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -181,25 +183,25 @@ export default function EmailTemplatesSettingsPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
+                        <label className="block text-sm font-medium text-[#8a8578] mb-1">Subject</label>
                         <input
                             type="text"
                             value={form.subject}
                             onChange={(e) => setForm({ ...form, subject: e.target.value })}
                             required
                             placeholder="Email subject line"
-                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={inputClasses}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Body</label>
+                        <label className="block text-sm font-medium text-[#8a8578] mb-1">Body</label>
                         <textarea
                             rows={8}
                             value={form.body}
                             onChange={(e) => setForm({ ...form, body: e.target.value })}
                             required
                             placeholder="Use placeholders like {{candidate_name}}, {{job_title}}, {{company_name}}"
-                            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className={`${inputClasses} resize-none`}
                         />
                     </div>
                     <div className="flex justify-end gap-3 pt-2">

@@ -46,8 +46,8 @@ export default function ScoringDefaultsPage() {
             <Card>
                 <div className="p-6 space-y-6">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Default Scoring Weights</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <h2 className="font-serif tracking-tight text-xl text-[#e8e4d9] mb-1">Default Scoring Weights</h2>
+                        <p className="text-sm text-[#8a8578] font-light">
                             Set default weights for new jobs. These can be customized per job during creation.
                         </p>
                     </div>
@@ -71,10 +71,10 @@ export default function ScoringDefaultsPage() {
                     </div>
 
                     {/* Total indicator */}
-                    <div className={`flex items-center justify-between p-3 rounded-lg ${isValid ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                    <div className={`flex items-center justify-between p-3 rounded-lg ${isValid ? 'bg-[#2d3a2d] border border-[#7c9a72]/20' : 'bg-[#3a2020] border border-[#c45c5c]/20'
                         }`}>
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Total</span>
-                        <span className={`text-sm font-bold ${isValid ? 'text-[#7c9a72]' : 'text-[#c45c5c]'}`}>
+                        <span className="text-sm font-medium text-[#e8e4d9]">Total</span>
+                        <span className={`text-sm font-bold font-serif ${isValid ? 'text-[#7c9a72]' : 'text-[#c45c5c]'}`}>
                             {Math.round(total * 100)}%
                         </span>
                     </div>
@@ -83,17 +83,17 @@ export default function ScoringDefaultsPage() {
                     )}
 
                     {/* Preview */}
-                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 font-medium uppercase">Scoring Preview</p>
+                    <div className="border-t border-[#2a2a2a] pt-4">
+                        <p className="text-xs text-[#6b6560] mb-3 font-medium uppercase tracking-wider">Scoring Preview</p>
                         <div className="space-y-2">
                             {[
-                                { label: 'Skills', value: weights.skill_weight, color: 'bg-indigo-500' },
-                                { label: 'Experience', value: weights.experience_weight, color: 'bg-amber-500' },
-                                { label: 'Education', value: weights.education_weight, color: 'bg-emerald-500' },
+                                { label: 'Skills', value: weights.skill_weight, color: 'bg-[#e8e4d9]' },
+                                { label: 'Experience', value: weights.experience_weight, color: 'bg-[#b8a855]' },
+                                { label: 'Education', value: weights.education_weight, color: 'bg-[#7c9a72]' },
                             ].map((item) => (
                                 <div key={item.label} className="flex items-center gap-3">
-                                    <span className="text-xs text-slate-600 dark:text-slate-400 w-20">{item.label}</span>
-                                    <div className="flex-1 h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                    <span className="text-xs text-[#8a8578] w-20">{item.label}</span>
+                                    <div className="flex-1 h-3 bg-[#1a1a1a] rounded-full overflow-hidden">
                                         <div
                                             className={`h-full ${item.color} rounded-full transition-all duration-300`}
                                             style={{ width: `${item.value * 100}%` }}

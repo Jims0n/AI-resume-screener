@@ -67,7 +67,7 @@ export default function OnboardingPage() {
                             ].map((item) => (
                                 <div key={item.label} className="text-center">
                                     <div className="text-2xl mb-1">{item.icon}</div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.label}</p>
+                                    <p className="text-xs text-[#8a8578]">{item.label}</p>
                                 </div>
                             ))}
                         </div>
@@ -81,33 +81,33 @@ export default function OnboardingPage() {
                     <div>
                         <div className="text-center mb-8">
                             <div className="text-5xl mb-4">🏢</div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            <h2 className="font-serif text-2xl text-[#e8e4d9] mb-2">
                                 Your Organization
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400">
+                            <p className="text-[#8a8578] font-light">
                                 Your workspace has been set up automatically. You can customize it later in Settings.
                             </p>
                         </div>
 
-                        <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-6 mb-6 space-y-4">
+                        <div className="bg-[#1a1a1a] rounded-xl p-6 mb-6 space-y-4 border border-[#2a2a2a]">
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Organization</span>
-                                <span className="text-sm text-slate-600 dark:text-slate-400">
+                                <span className="text-sm font-medium text-[#8a8578]">Organization</span>
+                                <span className="text-sm text-[#e8e4d9]">
                                     {user?.company || user?.username || 'Your Company'}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Your Role</span>
-                                <span className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Owner</span>
+                                <span className="text-sm font-medium text-[#8a8578]">Your Role</span>
+                                <span className="text-sm text-[#e8e4d9] font-medium">Owner</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Team Members</span>
-                                <span className="text-sm text-slate-600 dark:text-slate-400">Invite from Settings</span>
+                                <span className="text-sm font-medium text-[#8a8578]">Team Members</span>
+                                <span className="text-sm text-[#8a8578]">Invite from Settings</span>
                             </div>
                         </div>
 
-                        <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 mb-8 border border-indigo-100 dark:border-indigo-800">
-                            <p className="text-sm text-indigo-700 dark:text-indigo-400">
+                        <div className="bg-[#2a2820] rounded-xl p-4 mb-8 border border-[#d4c8a0]/20">
+                            <p className="text-sm text-[#d4c8a0]">
                                 💡 <strong>Tip:</strong> You can invite team members, customize scoring weights, and create email templates in the Settings page.
                             </p>
                         </div>
@@ -123,10 +123,10 @@ export default function OnboardingPage() {
                     <div>
                         <div className="text-center mb-8">
                             <div className="text-5xl mb-4">💼</div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            <h2 className="font-serif text-2xl text-[#e8e4d9] mb-2">
                                 Create Your First Job
                             </h2>
-                            <p className="text-slate-500 dark:text-slate-400">
+                            <p className="text-[#8a8578] font-light">
                                 Jobs are how you organize your recruitment pipeline. Create one to start screening resumes.
                             </p>
                         </div>
@@ -139,12 +139,12 @@ export default function OnboardingPage() {
                                 { step: '4', title: 'Review Rankings', desc: 'See candidates ranked by fit with detailed skill breakdowns' },
                             ].map((item) => (
                                 <div key={item.step} className="flex gap-4 items-start">
-                                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-[#e8e4d9]/10 text-[#e8e4d9] flex items-center justify-center text-sm font-bold flex-shrink-0">
                                         {item.step}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.title}</p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">{item.desc}</p>
+                                        <p className="text-sm font-semibold text-[#e8e4d9]">{item.title}</p>
+                                        <p className="text-sm text-[#8a8578] font-light">{item.desc}</p>
                                     </div>
                                 </div>
                             ))}
@@ -160,10 +160,10 @@ export default function OnboardingPage() {
                 {currentStep === 3 && (
                     <div className="text-center">
                         <div className="text-6xl mb-6">🎉</div>
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+                        <h2 className="font-serif text-3xl text-[#e8e4d9] mb-3">
                             You&apos;re All Set!
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 text-lg mb-8 max-w-md mx-auto">
+                        <p className="text-[#8a8578] text-lg mb-8 max-w-md mx-auto font-light">
                             Your account is ready. Start by creating your first job or explore the dashboard.
                         </p>
 
@@ -176,7 +176,7 @@ export default function OnboardingPage() {
                             </Button>
                         </div>
 
-                        <div className="mt-8 text-xs text-slate-400 dark:text-slate-500">
+                        <div className="mt-8 text-xs text-[#6b6560]">
                             You can revisit these tips anytime from the Help menu.
                         </div>
                     </div>
