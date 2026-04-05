@@ -48,6 +48,15 @@ export const candidateService = {
         return { blob: response.data, filename };
     },
 
+    async deleteCandidate(id: number): Promise<void> {
+        await api.delete(`/candidates/${id}/delete`);
+    },
+
+    async bulkDeleteCandidates(jobId: number, candidateIds: number[]): Promise<{ detail: string }> {
+        const { data } = await api.post(`/jobs/${jobId}/candidates/bulk-delete`, { candidate_ids: candidateIds });
+        return data;
+    },
+
     async getAnalytics(jobId: number): Promise<AnalyticsData> {
         const { data } = await api.get<AnalyticsData>(`/jobs/${jobId}/analytics`);
         return data;

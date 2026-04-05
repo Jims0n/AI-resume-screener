@@ -219,6 +219,40 @@ class CandidateDetailView(generics.RetrieveAPIView):
         ).prefetch_related('skill_matches', 'notes__user')
 
 
+class CandidateDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
+
+    def delete(self, request, pk):
+        candidate = _get_org_candidate(pk, request.user)
+        if not candidate:
+            return Response({'detail': 'Candidate not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        job_id = candidate.job_id
+        candidate_name = candidate.name
+        candidate.delete()
+        info_logger.info(f"Candidate deleted: id={pk} name='{candidate_name}' job={job_id} by {request.user.username}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CandidateBulkDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
+
+    def post(self, request, job_id):
+        job = _get_org_job(job_id, request.user)
+        if not job:
+            return Response({'detail': 'Job not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        candidate_ids = request.data.get('candidate_ids', [])
+        if not candidate_ids or not isinstance(candidate_ids, list):
+            return Response({'detail': 'candidate_ids is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        candidates = Candidate.objects.filter(id__in=candidate_ids, job=job)
+        count = candidates.count()
+        candidates.delete()
+        info_logger.info(f"Bulk delete: {count} candidates from job={job_id} by {request.user.username}")
+        return Response({'detail': f'{count} candidate(s) deleted.'})
+
+
 class CandidateStatusUpdateView(generics.UpdateAPIView):
     serializer_class = CandidateStatusSerializer
     permission_classes = [permissions.IsAuthenticated, IsOrganizationMember, CanManageCandidates]
