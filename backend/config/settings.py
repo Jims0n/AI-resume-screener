@@ -201,13 +201,19 @@ CORS_ALLOW_CREDENTIALS = True
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 # Celery
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+_redis_url = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_BROKER_URL = _redis_url
+CELERY_RESULT_BACKEND = _redis_url
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=False, cast=bool)
+
+# SSL config for Redis on Render (rediss:// URLs)
+if _redis_url.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = {'ssl_cert_reqs': 'CERT_NONE'}
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': 'CERT_NONE'}
 
 # Email
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -222,12 +228,16 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 RESEND_API_KEY = config('RESEND_API_KEY', default='')
 
 # Cache (used by throttling and password reset tokens)
-_REDIS_URL = config('REDIS_URL', default='')
-if _REDIS_URL and _REDIS_URL.startswith(('redis://', 'rediss://')):
+if _redis_url and _redis_url.startswith(('redis://', 'rediss://')):
+    _cache_options = {}
+    if _redis_url.startswith('rediss://'):
+        import ssl
+        _cache_options['ssl_cert_reqs'] = ssl.CERT_NONE
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': _REDIS_URL,
+            'LOCATION': _redis_url,
+            'OPTIONS': _cache_options,
         }
     }
 else:
