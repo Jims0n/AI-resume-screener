@@ -28,10 +28,10 @@ export default function Stepper({ steps, currentStep, onStepClick }: StepperProp
                                     disabled={!isClickable}
                                     className={clsx(
                                         'relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200',
-                                        isCompleted && 'bg-indigo-600 text-white',
-                                        isCurrent && 'border-2 border-indigo-600 bg-white dark:bg-slate-900 text-indigo-600',
-                                        !isCompleted && !isCurrent && 'border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-400',
-                                        isClickable && 'cursor-pointer hover:ring-2 hover:ring-indigo-200'
+                                        isCompleted && 'bg-[#e8e4d9] text-[#1a1a1a]',
+                                        isCurrent && 'border-2 border-[#e8e4d9] bg-[#1a1a1a] text-[#e8e4d9]',
+                                        !isCompleted && !isCurrent && 'border-2 border-[#3a3a3a] bg-[#1a1a1a] text-[#6b6560]',
+                                        isClickable && 'cursor-pointer hover:ring-2 hover:ring-[#e8e4d9]/20'
                                     )}
                                 >
                                     {isCompleted ? (
@@ -47,7 +47,7 @@ export default function Stepper({ steps, currentStep, onStepClick }: StepperProp
                                     <div
                                         className={clsx(
                                             'flex-1 h-0.5 mx-2 transition-colors duration-200',
-                                            isCompleted ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+                                            isCompleted ? 'bg-[#e8e4d9]' : 'bg-[#2a2a2a]'
                                         )}
                                     />
                                 )}
@@ -56,7 +56,7 @@ export default function Stepper({ steps, currentStep, onStepClick }: StepperProp
                             <div className="mt-1.5 hidden sm:block">
                                 <p className={clsx(
                                     'text-xs font-medium',
-                                    isCurrent ? 'text-indigo-600' : isCompleted ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400'
+                                    isCurrent ? 'text-[#e8e4d9]' : isCompleted ? 'text-[#e8e4d9]' : 'text-[#6b6560]'
                                 )}>
                                     {step.label}
                                 </p>

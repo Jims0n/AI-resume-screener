@@ -28,6 +28,9 @@ const roleBadgeVariant = (role: string) => {
     return map[role] || 'neutral';
 };
 
+const inputClasses = "px-3 py-2 rounded-lg border border-[#2a2a2a] bg-[#1c1c1c] text-[#e8e4d9] focus:outline-none focus:ring-1 focus:ring-[#e8e4d9]/30 font-light placeholder-[#6b6560]";
+const selectClasses = "px-3 py-2 rounded-lg border border-[#2a2a2a] bg-[#1c1c1c] text-[#e8e4d9] focus:outline-none focus:ring-1 focus:ring-[#e8e4d9]/30";
+
 export default function TeamSettingsPage() {
     const { user } = useAuthStore();
     const { addToast } = useToast();
@@ -123,7 +126,7 @@ export default function TeamSettingsPage() {
             {isAdmin && (
                 <Card>
                     <form onSubmit={handleInvite} className="p-6">
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Invite Team Member</h2>
+                        <h2 className="font-serif tracking-tight text-xl text-[#e8e4d9] mb-4">Invite Team Member</h2>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <input
                                 type="email"
@@ -131,12 +134,12 @@ export default function TeamSettingsPage() {
                                 value={inviteEmail}
                                 onChange={(e) => setInviteEmail(e.target.value)}
                                 required
-                                className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className={`flex-1 ${inputClasses}`}
                             />
                             <select
                                 value={inviteRole}
                                 onChange={(e) => setInviteRole(e.target.value)}
-                                className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className={selectClasses}
                             >
                                 {ROLE_OPTIONS.map((r) => (
                                     <option key={r.value} value={r.value}>{r.label}</option>
@@ -150,13 +153,13 @@ export default function TeamSettingsPage() {
 
             {/* Pending Invites */}
             {invites.length > 0 && (
-                <Card header={<div className="px-6 py-4"><h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Pending Invitations</h3></div>}>
-                    <div className="divide-y divide-slate-200 dark:divide-slate-700">
+                <Card header={<h3 className="font-serif text-lg text-[#e8e4d9]">Pending Invitations</h3>}>
+                    <div className="divide-y divide-[#2a2a2a]">
                         {invites.filter(i => i.status === 'pending').map((invite) => (
                             <div key={invite.id} className="flex items-center justify-between px-6 py-3">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{invite.email}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Role: {invite.role.replace('_', ' ')}</p>
+                                    <p className="text-sm font-medium text-[#e8e4d9]">{invite.email}</p>
+                                    <p className="text-xs text-[#8a8578]">Role: {invite.role.replace('_', ' ')}</p>
                                 </div>
                                 <Button variant="ghost" size="sm" onClick={() => handleCancelInvite(invite.id)}>Cancel</Button>
                             </div>
@@ -166,20 +169,20 @@ export default function TeamSettingsPage() {
             )}
 
             {/* Members List */}
-            <Card header={<div className="px-6 py-4"><h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Team Members ({members.length})</h3></div>}>
-                <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            <Card header={<h3 className="font-serif text-lg text-[#e8e4d9]">Team Members ({members.length})</h3>}>
+                <div className="divide-y divide-[#2a2a2a]">
                     {members.map((member) => (
                         <div key={member.id} className="flex items-center justify-between px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-sm font-bold">
+                                <div className="w-10 h-10 bg-[#e8e4d9]/10 text-[#e8e4d9] rounded-full flex items-center justify-center text-sm font-serif">
                                     {member.username.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                    <p className="text-sm font-medium text-[#e8e4d9]">
                                         {member.username}
-                                        {member.id === user?.id && <span className="text-slate-400 ml-1">(you)</span>}
+                                        {member.id === user?.id && <span className="text-[#6b6560] ml-1">(you)</span>}
                                     </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{member.email}</p>
+                                    <p className="text-xs text-[#8a8578]">{member.email}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -188,7 +191,7 @@ export default function TeamSettingsPage() {
                                         <select
                                             value={member.role}
                                             onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                                            className="text-sm px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                            className={`text-sm ${selectClasses}`}
                                         >
                                             {ROLE_OPTIONS.map((r) => (
                                                 <option key={r.value} value={r.value}>{r.label}</option>

@@ -112,8 +112,8 @@ export default function NotificationsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Notifications</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <h1 className="font-serif text-3xl tracking-tight text-[#e8e4d9]">Notifications</h1>
+                    <p className="text-sm text-[#8a8578] mt-1 font-light">
                         {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
                     </p>
                 </div>
@@ -125,15 +125,15 @@ export default function NotificationsPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-1 mb-6 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            <div className="flex gap-1 mb-6 bg-[#1a1a1a] rounded-lg p-1">
                 {filters.map((f) => (
                     <button
                         key={f.key}
                         onClick={() => setFilter(f.key)}
-                        className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                        className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${
                             filter === f.key
-                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-[#2a2a2a] text-[#e8e4d9] shadow-sm'
+                                : 'text-[#8a8578] hover:text-[#e8e4d9]'
                         }`}
                     >
                         {f.label}
@@ -145,7 +145,7 @@ export default function NotificationsPage() {
             {loading ? (
                 <div className="space-y-3">
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="flex gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div key={i} className="flex gap-3 p-4 bg-[#242424] rounded-xl border border-[#2a2a2a]">
                             <Skeleton variant="circle" width={40} />
                             <div className="flex-1 space-y-2">
                                 <Skeleton height={16} width="60%" />
@@ -158,7 +158,7 @@ export default function NotificationsPage() {
                 <Card>
                     <div className="text-center py-12">
                         <div className="text-4xl mb-3">🔔</div>
-                        <p className="text-slate-500 dark:text-slate-400">
+                        <p className="text-[#8a8578] font-light">
                             {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
                         </p>
                     </div>
@@ -167,7 +167,7 @@ export default function NotificationsPage() {
                 <div className="space-y-6">
                     {Object.entries(grouped).map(([dateLabel, items]) => (
                         <div key={dateLabel}>
-                            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-1">
+                            <h3 className="text-xs font-medium text-[#6b6560] uppercase tracking-wider mb-2 px-1">
                                 {dateLabel}
                             </h3>
                             <div className="space-y-1">
@@ -177,35 +177,35 @@ export default function NotificationsPage() {
                                         <button
                                             key={n.id}
                                             onClick={() => handleNotificationClick(n)}
-                                            className={`w-full text-left flex items-start gap-3 p-4 rounded-xl border transition-all hover:shadow-sm ${
+                                            className={`w-full text-left flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
                                                 n.is_read
-                                                    ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                                                    : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'
+                                                    ? 'bg-[#242424] border-[#2a2a2a] hover:bg-[#2a2a2a]'
+                                                    : 'bg-[#2a2820] border-[#d4c8a0]/20 hover:bg-[#302e24]'
                                             } ${link ? 'cursor-pointer' : 'cursor-default'}`}
                                         >
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center text-lg flex-shrink-0">
                                                 {getNotificationIcon(n.type)}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between gap-2">
                                                     <p className={`text-sm ${
                                                         n.is_read
-                                                            ? 'text-slate-700 dark:text-slate-300'
-                                                            : 'text-slate-900 dark:text-slate-100 font-medium'
+                                                            ? 'text-[#e8e4d9]/80'
+                                                            : 'text-[#e8e4d9] font-medium'
                                                     }`}>
                                                         {n.title}
                                                     </p>
-                                                    <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap flex-shrink-0">
+                                                    <span className="text-xs text-[#6b6560] whitespace-nowrap flex-shrink-0">
                                                         {timeAgo(n.created_at)}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                                                <p className="text-sm text-[#8a8578] mt-0.5 line-clamp-2">
                                                     {n.message}
                                                 </p>
                                                 {!n.is_read && (
                                                     <div className="flex items-center mt-2">
-                                                        <span className="w-2 h-2 bg-indigo-500 rounded-full" />
-                                                        <span className="text-xs text-indigo-600 dark:text-indigo-400 ml-1.5">New</span>
+                                                        <span className="w-2 h-2 bg-[#e8e4d9] rounded-full" />
+                                                        <span className="text-xs text-[#e8e4d9]/60 ml-1.5">New</span>
                                                     </div>
                                                 )}
                                             </div>

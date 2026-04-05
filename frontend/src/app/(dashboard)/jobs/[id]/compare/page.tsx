@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/Toast';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
-import Spinner from '@/components/ui/Spinner';
+import Skeleton from '@/components/ui/Skeleton';
 import type { ComparisonResult } from '@/types';
 
 export default function CompareCandidatesPage() {
@@ -46,9 +46,16 @@ export default function CompareCandidatesPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20">
-                <Spinner size="lg" />
-                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">AI is comparing candidates...</p>
+            <div className="animate-fade-in">
+                <div className="mb-8">
+                    <Skeleton height={32} width={280} className="mb-2" />
+                    <Skeleton height={16} width={200} />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <Skeleton height={220} />
+                    <Skeleton height={220} />
+                </div>
+                <Skeleton height={300} />
             </div>
         );
     }
@@ -61,8 +68,8 @@ export default function CompareCandidatesPage() {
         <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Candidate Comparison</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Comparing {result.candidates.length} candidates side by side</p>
+                    <h1 className="font-serif text-3xl tracking-tight text-[#e8e4d9]">Candidate Comparison</h1>
+                    <p className="text-[#8a8578] mt-1 font-light text-sm">Comparing {result.candidates.length} candidates side by side</p>
                 </div>
                 <Button variant="secondary" onClick={() => router.back()}>← Back to Rankings</Button>
             </div>
@@ -72,28 +79,28 @@ export default function CompareCandidatesPage() {
                 {result.candidates.map((c) => (
                     <Card key={c.id}>
                         <div className="text-center p-4">
-                            <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">
+                            <div className="w-14 h-14 bg-[#e8e4d9]/10 text-[#e8e4d9] rounded-full flex items-center justify-center text-xl font-serif mx-auto mb-3">
                                 {c.name?.charAt(0).toUpperCase() || '?'}
                             </div>
-                            <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate">{c.name}</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 truncate">{c.email}</p>
-                            <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                            <h3 className="font-semibold text-[#e8e4d9] text-sm truncate">{c.name}</h3>
+                            <p className="text-xs text-[#8a8578] mb-3 truncate">{c.email}</p>
+                            <div className="text-3xl font-serif text-[#e8e4d9]">
                                 {c.overall_score ?? '—'}
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Overall Score</p>
+                            <p className="text-xs text-[#8a8578] mt-1 uppercase tracking-wider">Overall Score</p>
 
                             <div className="grid grid-cols-3 gap-2 mt-4 text-center">
                                 <div>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{c.skill_match_score ?? '—'}</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Skills</p>
+                                    <p className="text-lg font-serif text-[#e8e4d9]">{c.skill_match_score ?? '—'}</p>
+                                    <p className="text-[10px] text-[#6b6560]">Skills</p>
                                 </div>
                                 <div>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{c.experience_score ?? '—'}</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Exp</p>
+                                    <p className="text-lg font-serif text-[#e8e4d9]">{c.experience_score ?? '—'}</p>
+                                    <p className="text-[10px] text-[#6b6560]">Exp</p>
                                 </div>
                                 <div>
-                                    <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{c.education_score ?? '—'}</p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Edu</p>
+                                    <p className="text-lg font-serif text-[#e8e4d9]">{c.education_score ?? '—'}</p>
+                                    <p className="text-[10px] text-[#6b6560]">Edu</p>
                                 </div>
                             </div>
                         </div>
@@ -103,21 +110,21 @@ export default function CompareCandidatesPage() {
 
             {/* Skills Comparison Matrix */}
             {skills.length > 0 && (
-                <Card header={<div className="px-6 py-4"><h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Skill-by-Skill Comparison</h2></div>}>
-                    <div className="overflow-x-auto">
+                <Card header={<h2 className="font-serif text-lg text-[#e8e4d9]">Skill-by-Skill Comparison</h2>}>
+                    <div className="overflow-x-auto -mx-6">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-slate-200 dark:border-slate-700">
-                                    <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Skill</th>
+                                <tr className="border-b border-[#2a2a2a]">
+                                    <th className="text-left px-6 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">Skill</th>
                                     {result.candidates.map((c) => (
-                                        <th key={c.id} className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">{c.name?.split(' ')[0]}</th>
+                                        <th key={c.id} className="text-center px-4 py-3 text-xs font-medium text-[#6b6560] uppercase tracking-wider">{c.name?.split(' ')[0]}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <tbody className="divide-y divide-[#2a2a2a]/50">
                                 {skills.map((skill) => (
-                                    <tr key={skill}>
-                                        <td className="px-6 py-3 text-slate-700 dark:text-slate-300 font-medium">{skill}</td>
+                                    <tr key={skill} className="hover:bg-[#2a2a28] transition-colors">
+                                        <td className="px-6 py-3 text-[#e8e4d9] font-medium">{skill}</td>
                                         {result.candidates.map((c) => {
                                             const match = result.comparison_matrix[skill]?.[String(c.id)];
                                             return (
@@ -144,13 +151,13 @@ export default function CompareCandidatesPage() {
             {/* AI Summary */}
             {result.comparison_summary && (
                 <Card className="mt-6">
-                    <div className="p-6">
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-3">AI Comparison Summary</h2>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{result.comparison_summary}</p>
+                    <div className="p-2">
+                        <h2 className="font-serif text-lg text-[#e8e4d9] mb-3">AI Comparison Summary</h2>
+                        <p className="text-sm text-[#e8e4d9]/80 whitespace-pre-wrap leading-relaxed font-light">{result.comparison_summary}</p>
                         {result.recommendation && (
-                            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 mb-1">⭐ Recommendation</p>
-                                <p className="text-sm text-indigo-700 dark:text-indigo-300">{result.recommendation}</p>
+                            <div className="mt-4 p-4 bg-[#2a2820] rounded-lg border border-[#d4c8a0]/20">
+                                <p className="text-sm font-semibold text-[#d4c8a0] mb-1">⭐ Recommendation</p>
+                                <p className="text-sm text-[#e8e4d9]/80 font-light">{result.recommendation}</p>
                             </div>
                         )}
                     </div>

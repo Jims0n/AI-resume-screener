@@ -26,8 +26,8 @@ export default function Slider({
     return (
         <div className={className}>
             <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
-                <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                <label className="text-sm font-medium text-[#8a8578]">{label}</label>
+                <span className="text-sm font-semibold text-[#e8e4d9] tabular-nums font-serif">
                     {displayValue}{suffix}
                 </span>
             </div>
@@ -38,7 +38,7 @@ export default function Slider({
                 step={step}
                 value={value}
                 onChange={(e) => onChange(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                className="w-full h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer accent-[#e8e4d9]"
             />
         </div>
     );

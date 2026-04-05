@@ -263,11 +263,11 @@ export default function CreateJobPage() {
 
                             {/* Add skill */}
                             <div className="flex gap-2">
-                                <select value={skillType} onChange={(e) => setSkillType(e.target.value as 'required' | 'nice')} className={`${inputClasses} w-auto`}>
+                                <select value={skillType} onChange={(e) => setSkillType(e.target.value as 'required' | 'nice')} className={`${inputClasses} w-28 sm:w-32 shrink-0`}>
                                     <option value="required">Required</option>
                                     <option value="nice">Nice-to-Have</option>
                                 </select>
-                                <input type="text" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} className={`flex-1 ${inputClasses}`} placeholder="Add a skill..." />
+                                <input type="text" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill(); } }} className={`flex-1 min-w-0 ${inputClasses}`} placeholder="Add a skill..." />
                                 <Button variant="secondary" onClick={addSkill}>Add</Button>
                             </div>
                         </div>
