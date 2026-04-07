@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, FileText, Cpu, BarChart3, Shield, Zap, Globe } from 'lucide-react';
+import { ArrowRight, FileText, Cpu, BarChart3, Globe } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -15,6 +15,7 @@ export default function LandingPage() {
             <a href="#product" className="hover:text-shortlyst-text transition-colors">Product</a>
             <a href="#how-it-works" className="hover:text-shortlyst-text transition-colors">How it works</a>
             <a href="#vision" className="hover:text-shortlyst-text transition-colors">Vision</a>
+            <Link href="/blog" className="hover:text-shortlyst-text transition-colors">Blog</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -144,9 +145,9 @@ export default function LandingPage() {
           <div>
             <span className="font-serif text-4xl mb-8 block">shortlyst.</span>
             <div className="flex gap-8 text-xs uppercase tracking-widest text-shortlyst-text/40 font-medium">
-              <a href="#" className="hover:text-shortlyst-text transition-colors">Privacy</a>
-              <a href="#" className="hover:text-shortlyst-text transition-colors">Terms</a>
-              <a href="#" className="hover:text-shortlyst-text transition-colors">Security</a>
+              <Link href="/privacy" className="hover:text-shortlyst-text transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-shortlyst-text transition-colors">Terms</Link>
+              <Link href="/blog" className="hover:text-shortlyst-text transition-colors">Blog</Link>
             </div>
           </div>
           <div className="text-xs text-shortlyst-text/30 font-light">
